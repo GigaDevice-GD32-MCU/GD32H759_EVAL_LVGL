@@ -1,0 +1,6 @@
+[submodule "Utilities/Third_Party/lvgl/lvgl_src"]
+	path = Utilities/Third_Party/lvgl/lvgl_src
+	url = git@github.com:lvgl/lvgl.git
+[submodule "Utilities/Third_Party/Fatfs/Fatfs_src"]
+	path = Utilities/Third_Party/Fatfs/Fatfs_src
+	url = git@172.21.15.151:gui/common/fatfs/fatfs.git
