@@ -1145,7 +1145,7 @@ void spi_af_gpio_control(uint32_t spi_periph, uint32_t ctl)
       \arg        SPI_I2S_INT_RP: RP interrupt
       \arg        SPI_I2S_INT_TP: TP interrupt
       \arg        SPI_I2S_INT_DP: DP interrupt
-      \arg        SPI_I2S_INT_ESTC: end of transfer or TxFIFO clear interrupt
+      \arg        SPI_I2S_INT_ESTC: end of transfer or suspend or TxFIFO clear interrupt
       \arg        SPI_I2S_INT_TXF: transmission filled interrupt
       \arg        SPI_I2S_INT_TXURE: underrun error interrupt
       \arg        SPI_I2S_INT_RXORE: overrun error interrupt
@@ -1169,7 +1169,7 @@ void spi_i2s_interrupt_enable(uint32_t spi_periph, uint32_t interrupt)
       \arg        SPI_I2S_INT_RP: RP interrupt
       \arg        SPI_I2S_INT_TP: TP interrupt
       \arg        SPI_I2S_INT_DP: DP interrupt
-      \arg        SPI_I2S_INT_ESTC: end of transfer or TXFIFO clear interrupt
+      \arg        SPI_I2S_INT_ESTC: end of transfer or suspend or TXFIFO clear interrupt
       \arg        SPI_I2S_INT_TXF: transmission filled interrupt
       \arg        SPI_I2S_INT_TXURE: underrun error interrupt
       \arg        SPI_I2S_INT_RXORE: overrun error interrupt
@@ -1201,6 +1201,7 @@ void spi_i2s_interrupt_disable(uint32_t spi_periph, uint32_t interrupt)
       \arg        SPI_I2S_INT_FLAG_FERR: TI frame error interrupt flag
       \arg        SPI_I2S_INT_FLAG_CONFERR: mode error interrupt flag
       \arg        SPI_I2S_INT_FLAG_TXSERF: TXSER reload interrupt flag
+      \arg        SPI_I2S_INT_FLAG_SPD: suspend interrupt flag
       \arg        SPI_I2S_INT_FLAG_TC: TxFIFO clear interrupt flag
     \param[out] none
     \retval     FlagStatus: SET or RESET

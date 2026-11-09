@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_hwsem.h"
 
 /*!
@@ -286,5 +284,3 @@ void hwsem_interrupt_disable(hwsem_semaphore_enum semaphore)
 {
     HWSEM_INTEN &= (uint32_t)(~((uint32_t)1U << semaphore));
 }
-
-#endif /* GD32H75E */

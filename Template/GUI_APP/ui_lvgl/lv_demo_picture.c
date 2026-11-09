@@ -17,6 +17,8 @@ LV_IMG_DECLARE(wave);
 LV_IMG_DECLARE(img_bmp);
 LV_IMG_DECLARE(img_png);
 extern lv_obj_t *obj_performance;
+extern lv_obj_t *led_main;
+extern lv_obj_t *led_performance;
 
 static void lv_demo_png(void);
 static void lv_demo_bmp(void);
@@ -33,6 +35,8 @@ static void hide_picture(lv_obj_t * picture)
 static void close_event_handler(lv_event_t * e)
 {
     lv_obj_clear_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(led_main, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
     lv_obj_del(lv_event_get_user_data(e));
 
     win1 = NULL;

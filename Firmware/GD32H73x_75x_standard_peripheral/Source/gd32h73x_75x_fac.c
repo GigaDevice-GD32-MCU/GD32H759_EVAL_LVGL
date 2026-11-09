@@ -305,7 +305,7 @@ void fac_fixed_data_preload(uint8_t size, int16_t array[])
 
 	uint8_t i;
 	for(i = 0U; i < size; i++) {
-		FAC_WDATA = ((*((uint16_t*)&array[i])) & FAC_WDATA_MASK);
+		FAC_WDATA = ((*((uint16_t*)&array[i])) & FAC_WDATA_WDATA);
 	}
 }
 

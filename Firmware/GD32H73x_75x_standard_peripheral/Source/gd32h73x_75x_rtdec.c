@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_rtdec.h"
 
 /* RTDEC firmware version offset macro */
@@ -475,5 +473,3 @@ void rtdec_interrupt_flag_clear(uint32_t rtdec_periph, uint32_t int_flag)
 {
     RTDEC_INTC(rtdec_periph) |= (int_flag & RTDEC_FLAG_MASK);
 }
-
-#endif /* GD32H75E */

@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_mdio.h"
 
 #define MDIO_INT_MASK                 ((uint32_t)0x00002FFFU)        /*!< mask of all valid MDIO interrupts */
@@ -408,5 +406,3 @@ void mdio_interrupt_disable(uint32_t interrupt)
 {
     MDIO_INTEN &= ~(interrupt & MDIO_INT_MASK);
 }
-
-#endif /* GD32H75E */

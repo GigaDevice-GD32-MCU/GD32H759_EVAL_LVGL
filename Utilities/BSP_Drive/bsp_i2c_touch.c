@@ -37,6 +37,11 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 
+/* half SCL phase; 3 phases per bit gives ~166kHz, within GT911's 400kHz limit */
+#define I2C_DELAY_US    2U
+
+static uint32_t i2c_delay_ticks;
+
 /* generates an I2C bus delay */
 static void i2c_delay(void);
 /* generates an I2C start signal */
@@ -67,11 +72,14 @@ void i2c_resetchip(void)
     /* initialize gt911, RST high, INT low, sets device address to 0xBA */
     GTP_RST_0();
     GTP_INT_0();
-    delay_1ms(1);
+    delay_1ms(20);
 
     /* init low >5ms */
     GTP_RST_1();
     delay_1ms(6);
+
+    /* GT911 datasheet: keep INT low 50ms after reset before releasing it */
+    delay_1ms(50);
 
     /* configure INT as input */
     gpio_mode_set(GTP_INT_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GTP_INT_GPIO_PIN);
@@ -350,8 +358,10 @@ ErrStatus gt911_writereg(uint16_t addr, uint8_t *buffer, uint8_t length)
 */
 static void i2c_delay(void)
 {
-    __IO uint32_t i;
-    for(i = 0; i < 5 * 10; i++);
+    /* cycle counter based, so bus timing does not depend on compiler or optimization level */
+    uint32_t start = DWT->CYCCNT;
+    while((DWT->CYCCNT - start) < i2c_delay_ticks) {
+    }
 }
 
 /*!
@@ -382,6 +392,7 @@ static void i2c_stop(void)
 {
     /* I2C stop signal is generated when SCL is high and SDA transitions from low to high */
     I2C_SDA_0();
+    i2c_delay();
     I2C_SCL_1();
     i2c_delay();
     I2C_SDA_1();
@@ -516,6 +527,11 @@ static void i2c_nack(void)
 */
 static void i2c_gpio_config(void)
 {
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->LAR = 0xC5ACCE55U;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    i2c_delay_ticks = (SystemCoreClock / 1000000U) * I2C_DELAY_US;
+
     /* configure SCL pin */
     rcu_periph_clock_enable(GTP_I2C_SCL_GPIO_CLK);
     gpio_mode_set(GTP_I2C_SCL_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GTP_I2C_SCL_PIN);

@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_sai.h"
 
 /* SAI pdm mode microphone delay mask */
@@ -888,5 +886,3 @@ void sai_flag_clear(uint32_t sai_periph, uint32_t block, uint32_t flag)
 {
     SAI_INTC(sai_periph, block) = flag;
 }
-
-#endif /* GD32H75E */

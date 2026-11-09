@@ -103,10 +103,10 @@ OF SUCH DAMAGE.
 #define FAC_STAT_GSTEF                   BIT(11)                         /*!< gain saturation error flag */
 
 /* FAC_WDATA */
-#define FAC_WDATA_WDATA                  BITS(0,31)                      /*!< Write data */
+#define FAC_WDATA_WDATA                  BITS(0,15)                      /*!< Write data */
 
 /* FAC_RDATA */
-#define FAC_RDATA_RDATA                  BITS(0,31)                      /*!< Read data */
+#define FAC_RDATA_RDATA                  BITS(0,15)                      /*!< Read data */
 
 /* constants definitions */
 /* structure for fac filter parameters */
@@ -211,10 +211,6 @@ typedef struct
 #define NOT_FAC_FLAG(flag)           (((flag) != FAC_FLAG_YBEF)  && ((flag) != FAC_FLAG_X0BFF) && \
                                               ((flag) != FAC_FLAG_OFEF)  && ((flag) != FAC_FLAG_UFEF) && \
                                               ((flag) != FAC_FLAG_STEF)  && ((flag) != FAC_FLAG_GSTEF))
-											  
-											  
-											  
-#define FAC_WDATA_MASK                  BITS(0,15)                      /*!< mask write data */											  
 /* FAC function declarations */
 /* initialization functions */
 /* reset the FAC peripheral */

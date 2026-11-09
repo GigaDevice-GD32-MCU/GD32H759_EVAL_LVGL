@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include <stdlib.h>
 #include "gd32h73x_75x_tli.h"
 
@@ -658,4 +656,3 @@ FlagStatus tli_flag_get(uint32_t flag)
     }
 }
 
-#endif /* GD32H75E */

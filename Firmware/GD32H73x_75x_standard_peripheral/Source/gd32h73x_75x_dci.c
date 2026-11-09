@@ -32,7 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
 
 #include "gd32h73x_75x_dci.h"
 
@@ -464,5 +463,3 @@ void dci_interrupt_flag_clear(uint32_t int_flag)
 {
     DCI_INTC |= int_flag;
 }
-
-#endif /* GD32H75E */

@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_cpdm.h"
 
 #define CPDM_CPSEL_MASK                        ((uint32_t)0xFFFFFFF0U)  /*!< CPDM output clock phase selection mask */
@@ -281,5 +279,3 @@ ErrStatus cpdm_clock_output(uint32_t cpdm_periph, cpdm_output_phase_enum output_
 
     return status;
 }
-
-#endif /* GD32H75E */

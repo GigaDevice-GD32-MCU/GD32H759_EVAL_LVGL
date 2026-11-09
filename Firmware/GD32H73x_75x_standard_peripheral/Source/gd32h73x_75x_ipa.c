@@ -32,10 +32,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_ipa.h"
 #include <stdlib.h>
+
+#ifndef GD32H75E
 
 #define IPA_DEFAULT_VALUE               0x00000000U
 #define IPA_DEFAULT_SCALE               0x00001000U

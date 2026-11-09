@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_cau.h"
 #include "gd32h73x_75x_rcu.h"
 
@@ -804,5 +802,3 @@ FlagStatus cau_interrupt_flag_get(uint32_t int_flag)
 
     return flag;
 }
-
-#endif /* GD32H75E */

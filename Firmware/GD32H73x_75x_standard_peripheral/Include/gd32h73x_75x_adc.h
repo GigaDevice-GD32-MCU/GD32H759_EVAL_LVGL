@@ -164,10 +164,10 @@ OF SUCH DAMAGE.
 #define ADC_OVSAMPCTL_OVSR                 BITS(16,25)                 /*!< oversampling ratio */
 
 /* ADC_WD1SR */
-#define ADC_WD1SR_AWD1CS                   BITS(0,20)                  /*!< analog watchdog 1 channel selection */
+#define ADC_WD1SR_AWD1CS                   BITS(0,21)                  /*!< analog watchdog 1 channel selection */
 
 /* ADC_WD2SR */
-#define ADC_WD2SR_AWD2CS                   BITS(0,20)                  /*!< analog watchdog 2 channel selection */
+#define ADC_WD2SR_AWD2CS                   BITS(0,21)                  /*!< analog watchdog 2 channel selection */
 
 /* ADC_WDHT1 */
 #define ADC_WDHT1_WDHT1                    BITS(0,23)                  /*!< high threshold for analog watchdog 1 */
@@ -466,7 +466,7 @@ OF SUCH DAMAGE.
 #define ADC_AWD1_2_SELECTION_CHANNEL_18            ((uint32_t)0x00040000U)              /*!< ADC channel 18 analog watchdog 1/2 selection */
 #define ADC_AWD1_2_SELECTION_CHANNEL_19            ((uint32_t)0x00080000U)              /*!< ADC channel 19 analog watchdog 1/2 selection */
 #define ADC_AWD1_2_SELECTION_CHANNEL_20            ((uint32_t)0x00100000U)              /*!< ADC channel 20 analog watchdog 1/2 selection */
-#define ADC_AWD1_2_SELECTION_CHANNEL_ALL           ((uint32_t)0x001FFFFFU)              /*!< all ADC channels analog watchdog 1/2 selection */
+#define ADC_AWD1_2_SELECTION_CHANNEL_ALL           ((uint32_t)0x003FFFFFU)              /*!< all ADC channels analog watchdog 1/2 selection */
 
 /* Differential mode for channel n(n=0..21) */
 #define ADC_DIFFERENTIAL_MODE_CHANNEL_0            ((uint32_t)0x00000001U)              /*!< ADC channel 0 differential mode */

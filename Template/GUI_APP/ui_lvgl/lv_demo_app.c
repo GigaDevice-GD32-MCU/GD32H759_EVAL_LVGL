@@ -265,6 +265,8 @@ static void setting_event_cb(lv_event_t *e)
 
 static void picture_event_cb(lv_event_t *e)
 {
+    lv_obj_add_flag(led_main, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
     lv_demo_picture(lv_event_get_user_data(e));
     lv_obj_add_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
 }

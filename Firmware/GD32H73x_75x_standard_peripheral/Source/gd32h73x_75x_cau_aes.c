@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_cau.h"
 #include <string.h>
 
@@ -1061,5 +1059,3 @@ static ErrStatus cau_aes_calculate(uint8_t *input, uint32_t in_length, uint8_t *
 
     return SUCCESS;
 }
-
-#endif /* GD32H75E */
