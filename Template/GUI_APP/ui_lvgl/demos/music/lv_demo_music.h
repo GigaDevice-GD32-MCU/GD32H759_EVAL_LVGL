@@ -35,11 +35,21 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 
+/**
+ * Music player used by the GD32 demo app.
+ * @param flag  0: build the player hidden (call once after the screen is (re)built)
+ *              1: show the player again and replay the intro
+ */
 void lv_demo_music(unsigned char flag);
-const char * _lv_demo_music_get_title(uint32_t track_id);
-const char * _lv_demo_music_get_artist(uint32_t track_id);
-const char * _lv_demo_music_get_genre(uint32_t track_id);
-uint32_t _lv_demo_music_get_track_length(uint32_t track_id);
+/**
+ * Create the music demo with custom arguments.
+ * @param args Pointer to demo arguments structure containing the parent widget and other options.
+ */
+void lv_demo_music_with_args(const lv_demo_args_t * args);
+const char * lv_demo_music_get_title(uint32_t track_id);
+const char * lv_demo_music_get_artist(uint32_t track_id);
+const char * lv_demo_music_get_genre(uint32_t track_id);
+uint32_t lv_demo_music_get_track_length(uint32_t track_id);
 
 /**********************
  *      MACROS

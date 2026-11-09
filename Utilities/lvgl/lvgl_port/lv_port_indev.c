@@ -18,6 +18,8 @@
 /*********************
  *      DEFINES
  *********************/
+/* touch read period, same as LV_INDEV_DEF_READ_PERIOD of the v8 port */
+#define TOUCHPAD_READ_PERIOD    20
 
 /**********************
  *      TYPEDEFS
@@ -28,15 +30,13 @@
  **********************/
 
 static void touchpad_init(void);
-static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data);
-static bool touchpad_is_pressed(void);
-static void touchpad_get_xy(lv_coord_t * x, lv_coord_t * y);
+static void touchpad_read(lv_indev_t * indev, lv_indev_data_t * data);
 
 /**********************
  *  STATIC VARIABLES
  **********************/
 lv_indev_t * indev_touchpad;
-extern uint8_t touch_buf[48]; 
+extern uint8_t touch_buf[48];
 extern uint8_t clear_flag;
 
 /**********************
@@ -49,7 +49,6 @@ extern uint8_t clear_flag;
 
 void lv_port_indev_init(void)
 {
-    static lv_indev_drv_t indev_drv;
     /*------------------
      * Touchpad
      * -----------------*/
@@ -57,10 +56,10 @@ void lv_port_indev_init(void)
     touchpad_init();
 
     /*Register a touchpad input device*/
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb = touchpad_read;
-    indev_touchpad = lv_indev_drv_register(&indev_drv);
+    indev_touchpad = lv_indev_create();
+    lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev_touchpad, touchpad_read);
+    lv_timer_set_period(lv_indev_get_read_timer(indev_touchpad), TOUCHPAD_READ_PERIOD);
 }
 
 /**********************
@@ -92,23 +91,23 @@ static void touchpad_init(void)
 #define GT911_DEBOUNCE_DIST     40
 
 /*Will be called by the library to read the touchpad*/
-static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
+static void touchpad_read(lv_indev_t * indev, lv_indev_data_t * data)
 {
-    LV_UNUSED(indev_drv);
+    LV_UNUSED(indev);
 
-    static lv_coord_t last_x = 0;
-    static lv_coord_t last_y = 0;
-    static lv_indev_state_t last_state = LV_INDEV_STATE_REL;
+    static int32_t last_x = 0;
+    static int32_t last_y = 0;
+    static lv_indev_state_t last_state = LV_INDEV_STATE_RELEASED;
     static uint32_t last_update = 0;
     /* pending (not yet confirmed) press candidate */
     static uint8_t  cand_valid = 0;
-    static lv_coord_t cand_x = 0;
-    static lv_coord_t cand_y = 0;
+    static int32_t cand_x = 0;
+    static int32_t cand_y = 0;
 
     if(gt911.enable == 0) {
         data->point.x = last_x;
         data->point.y = last_y;
-        data->state = LV_INDEV_STATE_REL;
+        data->state = LV_INDEV_STATE_RELEASED;
         return;
     }
 
@@ -128,7 +127,7 @@ static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
                 cnt = GT911_MAX_POINT;
             }
 
-            lv_indev_state_t new_state = LV_INDEV_STATE_REL;
+            lv_indev_state_t new_state = LV_INDEV_STATE_RELEASED;
 
             if(cnt > 0U) {
                 if(SUCCESS == gt911_readreg(GT911_COORDINATE_REG, touch_buf, 8U * cnt)) {
@@ -145,25 +144,25 @@ static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
                      * sitting in the bottom right corner. */
                     if((x < LV_HOR_RES_MAX) && (y < LV_VER_RES_MAX)) {
                         gt911.pressed = 2;
-                        if(last_state == LV_INDEV_STATE_PR) {
+                        if(last_state == LV_INDEV_STATE_PRESSED) {
                             /* already pressed: follow the finger without delay */
-                            last_x = (lv_coord_t)x;
-                            last_y = (lv_coord_t)y;
-                            new_state = LV_INDEV_STATE_PR;
+                            last_x = (int32_t)x;
+                            last_y = (int32_t)y;
+                            new_state = LV_INDEV_STATE_PRESSED;
                         }
                         else if(cand_valid &&
-                                (LV_ABS((lv_coord_t)x - cand_x) < GT911_DEBOUNCE_DIST) &&
-                                (LV_ABS((lv_coord_t)y - cand_y) < GT911_DEBOUNCE_DIST)) {
+                                (LV_ABS((int32_t)x - cand_x) < GT911_DEBOUNCE_DIST) &&
+                                (LV_ABS((int32_t)y - cand_y) < GT911_DEBOUNCE_DIST)) {
                             /* second consistent sample: accept the press */
-                            last_x = (lv_coord_t)x;
-                            last_y = (lv_coord_t)y;
-                            new_state = LV_INDEV_STATE_PR;
+                            last_x = (int32_t)x;
+                            last_y = (int32_t)y;
+                            new_state = LV_INDEV_STATE_PRESSED;
                         }
                         else {
                             /* first sample: remember it but stay released */
                             cand_valid = 1;
-                            cand_x = (lv_coord_t)x;
-                            cand_y = (lv_coord_t)y;
+                            cand_x = (int32_t)x;
+                            cand_y = (int32_t)y;
                         }
                     }
                 }
@@ -177,7 +176,7 @@ static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
                 cand_valid = 0;
             }
 
-            if(new_state == LV_INDEV_STATE_REL) {
+            if(new_state == LV_INDEV_STATE_RELEASED) {
                 gt911.pressed = 0;
             }
             last_state = new_state;
@@ -189,8 +188,8 @@ static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     }
 
     /* safety net: a press must never stay latched if gt911 goes quiet */
-    if((last_state == LV_INDEV_STATE_PR) && (lv_tick_elaps(last_update) > GT911_PRESS_TIMEOUT)) {
-        last_state = LV_INDEV_STATE_REL;
+    if((last_state == LV_INDEV_STATE_PRESSED) && (lv_tick_elaps(last_update) > GT911_PRESS_TIMEOUT)) {
+        last_state = LV_INDEV_STATE_RELEASED;
     }
 
     data->point.x = last_x;
@@ -198,24 +197,8 @@ static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     data->state = last_state;
 }
 
-// /*Return true is the touchpad is pressed*/
-// static bool touchpad_is_pressed(void)
-// {
-//     /*Your code comes here*/
-//     if(is_touch){
-//         is_touch = 0;
-//         return true;
-//     } else {
-//         return false;
-//     }
-// }
+#else /*Enable this file at the top*/
 
-// /*Get the x and y coordinates if the touchpad is pressed*/
-// static void touchpad_get_xy(lv_coord_t * x, lv_coord_t * y)
-// {
-//     /*Your code comes here*/
-//     (*x) = touch_x;
-//     (*y) = touch_y;
-// }
-
+/*This dummy typedef exists purely to silence -Wpedantic.*/
+typedef int keep_pedantic_happy;
 #endif
