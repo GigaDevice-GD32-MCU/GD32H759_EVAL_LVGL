@@ -1,6 +1,4 @@
 [submodule "Utilities/lvgl/lvgl"]
 	path = Utilities/lvgl/lvgl
 	url = https://github.com/lvgl/lvgl.git
-[submodule "Utilities/fatfs/fatfs"]
-	path = Utilities/fatfs/fatfs
-	url = git@172.21.15.151:gui/common/fatfs/fatfs.git
+
