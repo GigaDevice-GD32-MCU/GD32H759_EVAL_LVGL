@@ -50,6 +50,9 @@ OF SUCH DAMAGE.
     #include "lv_port_disp.h"
     #include "lv_port_indev.h"
     #include "lv_demos.h"
+    #if LV_USE_DRAW_IPA
+        #include "gigadevice/ipa/lv_draw_ipa.h"
+    #endif
 #endif
 /* FatFs*/
 #if SYS_configUSE_FAT32FS
@@ -91,14 +94,17 @@ int main(void)
 
 #if SYS_configUSE_LVGL
     lv_init();
+#if LV_USE_DRAW_IPA
+    lv_draw_ipa_init();
+#endif
     lv_port_disp_init();
     lv_port_indev_init();
 #endif
 
 
  #if SYS_configUSE_FAT32FS
-     lv_fs_fatfs_init();
-     /* Mount the card once here, while no LVGL timer is running
+     /* The LVGL FatFs driver ('S:') is registered by lv_init() (LV_USE_FS_FATFS).
+        Mount the card once here, while no LVGL timer is running
         yet. sd_init() reconfigures PLL1 and takes a long time, doing it from
         inside a button callback is much less reliable. */
      scanfiles_test();
@@ -122,9 +128,19 @@ int main(void)
 #endif
 
     while(1){
-        delay_1ms(5);
 #if SYS_configUSE_LVGL
-        lv_task_handler();
+        {
+            /* sleep only until the next LVGL timer is due, capped at 5 ms */
+            uint32_t idle_ms = lv_timer_handler();
+            if(idle_ms > 5U) {
+                idle_ms = 5U;
+            }
+            if(idle_ms > 0U) {
+                delay_1ms(idle_ms);
+            }
+        }
+#else
+        delay_1ms(5);
 #endif
 
 #if SYS_configUSE_WATCHDOG

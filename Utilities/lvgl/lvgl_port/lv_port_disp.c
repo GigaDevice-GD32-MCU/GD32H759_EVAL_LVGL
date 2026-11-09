@@ -18,48 +18,45 @@
 /*********************
  *      DEFINES
  *********************/
-#define LV_BUF_TYPE    2 /* 1 one buf 2 two buf 3 pingpong*/
-#define USE_IPA_INT    1
+#define BYTE_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(LV_COLOR_FORMAT_RGB565)) /* 2 for RGB565 */
+
+#define FLUSH_BY_IPA   LV_FLUSH_USE_IPA
+
+/* With LV_USE_DRAW_IPA the draw unit shares the IPA with the flush copy: it waits for the
+ * flush transfer through lv_draw_ipa_wait_external_idle() and polls its own transfers
+ * (LV_OS_NONE). The interrupt driven (RTOS) draw unit would need the IRQ to be shared too. */
+#if LV_USE_DRAW_IPA && FLUSH_BY_IPA && defined(LV_USE_DRAW_IPA_INTERRUPT) && LV_USE_DRAW_IPA_INTERRUPT
+    #error "LV_FLUSH_USE_IPA 1 can't be used with LV_USE_DRAW_IPA_INTERRUPT 1"
+#endif
 
 /**********************
  *      TYPEDEFS
  **********************/
-//extern uint16_t back_to_home;
+
 /**********************
  *  STATIC PROTOTYPES
  **********************/
 static void disp_init(void);
-static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
-//static void gpu_fill(lv_disp_drv_t * disp_drv, lv_color_t * dest_buf, lv_coord_t dest_width,
-//        const lv_area_t * fill_area, lv_color_t color);
-static void disp_clean_dcache(lv_disp_drv_t * disp_drv);
+static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
+
 /**********************
  *  STATIC VARIABLES
  **********************/
-#if(LV_BUF_TYPE == 1)
 /* TLI buf */
-lv_color_t buf_disp[LV_HOR_RES_MAX * LV_VER_RES_MAX] __attribute__((section("SDRAM"))); 
-/* LVGL buf */
-#define LV_BUF_SIZE (LV_HOR_RES_MAX* 256/sizeof(lv_color_t))
-lv_color_t buf_2_1[LV_BUF_SIZE] __attribute__((section("ADDSRAM")));
-#elif(LV_BUF_TYPE==2)
-/* TLI buf */
-__ALIGNED(32) lv_color_t buf_disp[LV_HOR_RES_MAX * LV_VER_RES_MAX];
-/* LVGL buf */
-#define LV_BUF_SIZE (LV_HOR_RES_MAX * 300/sizeof(lv_color_t))
-__ALIGNED(32) lv_color_t buf_2_1[LV_BUF_SIZE] ;
-__ALIGNED(32) lv_color_t buf_2_2[LV_BUF_SIZE] ;
-#else
-/* LVGL buf  TLI buf */
-#define LV_BUF_SIZE (LV_HOR_RES_MAX * LV_VER_RES_MAX)
-static lv_color_t buf_2_1[LV_HOR_RES_MAX * LV_VER_RES_MAX] __attribute__((section("SDRAM")));
-static lv_color_t buf_2_2[LV_HOR_RES_MAX * LV_VER_RES_MAX] __attribute__((section("SDRAM")));
+__ALIGNED(32) uint8_t buf_disp[LV_HOR_RES_MAX * LV_VER_RES_MAX * BYTE_PER_PIXEL];
+/* LVGL buf: LV_BUF_LINES lines each */
+#define LV_BUF_SIZE (LV_HOR_RES_MAX * LV_BUF_LINES * BYTE_PER_PIXEL)
+__ALIGNED(32) uint8_t buf_2_1[LV_BUF_SIZE];
+__ALIGNED(32) uint8_t buf_2_2[LV_BUF_SIZE];
+
+#if FLUSH_BY_IPA
+volatile uint8_t g_ipa_flag = 0;
+static lv_display_t * volatile g_disp_drv;
 #endif
 
-#if (USE_IPA_INT == 1)
-volatile uint8_t g_ipa_flag = 0;
-static lv_disp_drv_t * g_disp_drv;
-#endif
+volatile bool disp_flush_enabled = true;
+static volatile uint32_t completed_frame_count;
+
 /**********************
  *      MACROS
  **********************/
@@ -75,81 +72,21 @@ void lv_port_disp_init(void)
      * -----------------------*/
     disp_init();
 
+    /*------------------------------------
+     * Create a display and set a flush_cb
+     * -----------------------------------*/
+    lv_display_t * disp = lv_display_create(LV_HOR_RES_MAX, LV_VER_RES_MAX);
+    lv_display_set_color_format(disp, LV_COLOR_FORMAT_RGB565);
+    lv_display_set_flush_cb(disp, disp_flush);
+
     /*-----------------------------
      * Create a buffer for drawing
      *----------------------------*/
-    static lv_disp_draw_buf_t draw_buf_dsc;
-#if(LV_BUF_TYPE==1)
-    lv_disp_draw_buf_init(&draw_buf_dsc, buf_2_1, NULL, LV_BUF_SIZE);   /*Initialize the display buffer*/
-#else
-    lv_disp_draw_buf_init(&draw_buf_dsc, buf_2_1, buf_2_2, LV_BUF_SIZE);   /*Initialize the display buffer*/
-#endif
-    /*-----------------------------------
-     * Register the display in LVGL
-     *----------------------------------*/
-    static lv_disp_drv_t disp_drv;                         /*Descriptor of a display driver*/
-    lv_disp_drv_init(&disp_drv);                    /*Basic initialization*/
-
-    /*Set up the functions to access to your display*/
-
-    /*Set the resolution of the display*/
-    disp_drv.hor_res = LV_HOR_RES_MAX;
-    disp_drv.ver_res = LV_VER_RES_MAX;
-
-    /*Used to copy the buffer's content to the display*/
-    disp_drv.flush_cb = disp_flush;
-
-    /*Set a display buffer*/
-    disp_drv.draw_buf = &draw_buf_dsc;
-
-    /*Required for Example 3)*/
-#if(LV_BUF_TYPE==3)
-    disp_drv.full_refresh = 1;
-    //disp_drv.direct_mode = 1;
-#endif /* LV_BUF_TYPE==3 */
-    disp_drv.clean_dcache_cb = &disp_clean_dcache;
-
-    /* Fill a memory array with a color if you have GPU.
-     * Note that, in lv_conf.h you can enable GPUs that has built-in support in LVGL.
-     * But if you have a different GPU you can use with this callback.*/
-    //disp_drv.gpu_fill_cb = gpu_fill;
-
-    /*Finally register the driver*/
-    lv_disp_drv_register(&disp_drv);
-    
-#if(LV_BUF_TYPE == 3)
-    nvic_irq_enable(TLI_IRQn, 2, 0);
-#else
+    lv_display_set_buffers(disp, buf_2_1, buf_2_2, sizeof(buf_2_1), LV_DISPLAY_RENDER_MODE_PARTIAL);
+#if FLUSH_BY_IPA
     nvic_irq_enable(IPA_IRQn, 2, 0);
-#endif /* LV_BUF_TYPE==3 */
-}
-
-/**********************
- *   STATIC FUNCTIONS
- **********************/
-
-/*Initialize your display and the required peripherals.*/
-static void disp_init(void)
-{
-    /*You code here*/
-    /* ipa init */
-    rcu_periph_clock_enable(RCU_IPA);
-    /* initilize the LCD and layers */
-    lcd_init();
-#if(LV_BUF_TYPE==3)
-    lcd_layer_init(LCD_LAYER_BACKGROUND, (uint32_t)buf_2_1, LV_HOR_RES_MAX, LV_VER_RES_MAX, LAYER_PPF_RGB565);
-#else
-    lcd_layer_init(LCD_LAYER_BACKGROUND, (uint32_t)buf_disp, LV_HOR_RES_MAX, LV_VER_RES_MAX, LAYER_PPF_RGB565);
 #endif
-    lcd_layer_enable(LCD_LAYER_BACKGROUND);
-    lcd_layer_set(LCD_LAYER_BACKGROUND,(uint32_t)buf_disp);
-    lcd_transparency_set(255);
-//    lcd_clear(LCD_COLOR_BLACK);
-    tli_enable();
 }
-
-volatile bool disp_flush_enabled = true;
-static volatile uint32_t completed_frame_count;
 
 uint32_t lv_port_disp_get_fps(void)
 {
@@ -190,66 +127,105 @@ void disp_disable_update(void)
     disp_flush_enabled = false;
 }
 
-/* A callback for cleaning any caches related to the display
- */
-static void disp_clean_dcache(lv_disp_drv_t * disp_drv)
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
+
+/*Initialize your display and the required peripherals.*/
+static void disp_init(void)
 {
-#if __CORTEX_M >= 0x07
-    SCB_CleanInvalidateDCache();
+#if FLUSH_BY_IPA
+    /* the IPA copies the rendered areas into the TLI frame */
+    rcu_periph_clock_enable(RCU_IPA);
 #endif
+    /* initilize the LCD and layers */
+    lcd_init();
+    lcd_layer_init(LCD_LAYER_BACKGROUND, (uint32_t)buf_disp, LV_HOR_RES_MAX, LV_VER_RES_MAX, LAYER_PPF_RGB565);
+    lcd_layer_enable(LCD_LAYER_BACKGROUND);
+    lcd_layer_set(LCD_LAYER_BACKGROUND, (uint32_t)buf_disp);
+    lcd_transparency_set(255);
+    tli_enable();
 }
 
-/*Flush the content of the internal buffer the specific area on the display
+/*Flush the content of the internal buffer the specific area on the display.
+ *`px_map` contains the rendered image as raw pixel map and it should be copied to `area` on the display.
  *You can use DMA or any hardware acceleration to do this operation in the background but
- *'lv_disp_flush_ready()' has to be called when finished.*/
-static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
+ *'lv_display_flush_ready()' has to be called when it's finished.*/
+static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
-//    disp_clean_dcache(disp_drv);
-    /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
-#if (USE_IPA_INT == 0)
-    uint32_t time_out;
+#if !FLUSH_BY_IPA
+    /* CPU copy into the TLI frame. The IPA draw unit invalidates the D-Cache lines of
+     * what it rendered, so px_map can be read directly; the frame lines written here
+     * are cleaned so that the TLI sees them. */
+    const int32_t w_bytes = (area->x2 - area->x1 + 1) * BYTE_PER_PIXEL;
+    const uint8_t * src = px_map;
+    uint8_t * dst = buf_disp + BYTE_PER_PIXEL * (LV_HOR_RES_MAX * area->y1 + area->x1);
+    int32_t y;
+
+    for(y = area->y1; y <= area->y2; y++) {
+        lv_memcpy(dst, src, w_bytes);
+        src += w_bytes;
+        dst += LV_HOR_RES_MAX * BYTE_PER_PIXEL;
+    }
+#if __CORTEX_M >= 0x07
+    {
+        uint32_t start = ((uint32_t)buf_disp + BYTE_PER_PIXEL * LV_HOR_RES_MAX * area->y1) & ~31U;
+        uint32_t end = (uint32_t)buf_disp + BYTE_PER_PIXEL * LV_HOR_RES_MAX * (area->y2 + 1);
+        SCB_CleanDCache_by_Addr((uint32_t *)start, (int32_t)(end - start));
+    }
 #endif
+    if(lv_display_flush_is_last(disp)) {
+        completed_frame_count++;
+    }
+    lv_display_flush_ready(disp);
+#else
     uint16_t offline;
     offline = LV_HOR_RES_MAX - (area->x2 - area->x1 + 1);
 
-    if(lv_disp_flush_is_last(disp_drv)) {
+#if __CORTEX_M >= 0x07
+    /* AXI SRAM is write-through (bsp_mpu.c): only wait for the stores to complete */
+    __DSB();
+#endif
+
+    if(lv_display_flush_is_last(disp)) {
         completed_frame_count++;
     }
-    
-    while(1 == g_ipa_flag){
+
+    while(1 == g_ipa_flag) {
     }
-    
+
     IPA_CTL = 0x0;
-    IPA_FMADDR = (uint32_t)color_p;
-    IPA_DMADDR = (uint32_t)buf_disp + 2*(LV_HOR_RES_MAX*area->y1+area->x1);
+    /* clear the flags left by the previous transfer */
+    IPA_INTC = 0x3FU;
+    IPA_FMADDR = (uint32_t)px_map;
+    IPA_DMADDR = (uint32_t)buf_disp + BYTE_PER_PIXEL * (LV_HOR_RES_MAX * area->y1 + area->x1);
     IPA_FLOFF = 0;
     IPA_DLOFF = offline;
     IPA_FPCTL = FOREGROUND_PPF_RGB565;
+    IPA_DPCTL = (IPA_DPCTL & ~0x07U) | (uint32_t)IPA_DPF_RGB565;
     IPA_IMS = (uint32_t)((area->x2 - area->x1 + 1) << 16) | (uint16_t)(area->y2 - area->y1 + 1);
-    
-#if (USE_IPA_INT == 1)
-    g_disp_drv = disp_drv;
+
+    g_disp_drv = disp;
     /* enable IPA interrupt */
     g_ipa_flag = 1;
     IPA_CTL |= IPA_CTL_FTFIE | IPA_CTL_TAEIE | IPA_CTL_WCFIE;
     IPA_CTL |= IPA_CTL_TEN;
-    lv_disp_flush_ready(g_disp_drv);
-#else
-    IPA_CTL |= IPA_CTL_TEN;
-    /* Wait until transfer is done */
-    while (IPA_CTL & IPA_CTL_TEN)
-    {
-        if(time_out++ >= 0XFFFFFFFF) break;
-    }
-
-    /* IMPORTANT!!!
-     * Inform the graphics library that you are ready with the flushing*/
-    lv_disp_flush_ready(disp_drv);
+    /* With two buffers LVGL renders into the other buffer meanwhile; the next
+     * flush waits for this transfer through g_ipa_flag. */
+    lv_display_flush_ready(disp);
 #endif
-
 }
 
-#if (USE_IPA_INT == 1)
+#if FLUSH_BY_IPA
+
+#if LV_USE_DRAW_IPA
+/* Called by the IPA draw unit before it programs the IPA: let the flush copy finish */
+void lv_draw_ipa_wait_external_idle(void)
+{
+    while(1 == g_ipa_flag) {
+    }
+}
+#endif
 
 /*!
     \brief      this function handles IPA exception
@@ -259,25 +235,25 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 */
 void IPA_IRQHandler(void)
 {
-    if(RESET != ipa_interrupt_flag_get(IPA_INT_FLAG_FTF)){
-        if(0U != (IPA_CTL & IPA_CTL_FTFIE)){
-            IPA_CTL &= (uint32_t)(~IPA_CTL_FTFIE);
-            ipa_interrupt_flag_clear(IPA_INT_FLAG_FTF);
-            
-            if(1U == g_ipa_flag){
-                g_ipa_flag = 0U;
-                /* IMPORTANT!!!
-                 * Inform the graphics library that you are ready with the flushing*/
-                lv_disp_flush_ready(g_disp_drv);
-            }
-        }
+    /* the copy ends with FTF, or with TAE / WCF and no FTF; disable and clear all three so
+     * that none of them stays pending or enabled for the next transfer */
+    uint32_t flags = IPA_INTF & (IPA_INTF_TAEIF | IPA_INTF_FTFIF | IPA_INTF_WCFIF);
+
+    if(0U == flags) {
+        return;
+    }
+    IPA_CTL &= ~(IPA_CTL_FTFIE | IPA_CTL_TAEIE | IPA_CTL_WCFIE);
+    IPA_INTC = flags;
+
+    if(1U == g_ipa_flag) {
+        g_ipa_flag = 0U;
+        /* IMPORTANT!!!
+         * Inform the graphics library that you are ready with the flushing*/
+        lv_display_flush_ready(g_disp_drv);
     }
 }
 
 #endif
-
-/*OPTIONAL: GPU INTERFACE*/
-
 
 #else /*Enable this file at the top*/
 

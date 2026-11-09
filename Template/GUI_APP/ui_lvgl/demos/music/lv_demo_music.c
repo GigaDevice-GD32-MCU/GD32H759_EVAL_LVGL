@@ -12,6 +12,9 @@
 
 #include "lv_demo_music_main.h"
 #include "lv_demo_music_list.h"
+#if LV_DEMO_MUSIC_AUTO_PLAY && LV_USE_PERF_MONITOR
+    #include "lvgl_private.h"
+#endif
 
 /*********************
  *      DEFINES
@@ -28,47 +31,22 @@
     static void auto_step_cb(lv_timer_t * timer);
 #endif
 
- LV_IMG_DECLARE(img_home);
-// LV_IMG_DECLARE(img_home_pressed);
-
 /**********************
  *  STATIC VARIABLES
  **********************/
-//static lv_obj_t * ctrl;
-//static lv_obj_t * list;
+static lv_obj_t * root;
 static lv_obj_t * ctrl;
-lv_obj_t * list;
-extern lv_obj_t * music_cont;
-lv_obj_t *imgbtn_home;
+static lv_obj_t * list;
+static lv_obj_t * imgbtn_home;
+static int32_t music_height;
 
-extern lv_obj_t* obj_main;
-extern lv_obj_t* led_performance;
-extern lv_obj_t* led_main;
-extern lv_obj_t* tv_main;
+LV_IMAGE_DECLARE(img_home);
+
+extern lv_obj_t * obj_main;
+extern lv_obj_t * led_performance;
+extern lv_obj_t * led_main;
+extern lv_obj_t * tv_main;
 extern uint16_t back_to_home;
-static void home_event_cb(lv_event_t *e)
-{
-    back_to_home = 1;
-    /* Stop playback and rewind to the first track while the page is hidden, so
-     * the album slide/fade animations are never visible and the demo always
-     * reopens in its initial state. */
-    _lv_demo_music_reset();
-
-    /* `ctrl` is the transparent full screen scroll container that holds the
-     * player; `music_cont` is the player itself and `list` a sibling of `ctrl`
-     * that shows through it. All of them have to go. */
-    if(ctrl != NULL) lv_obj_add_flag(ctrl, LV_OBJ_FLAG_HIDDEN);
-    if(music_cont != NULL) lv_obj_add_flag(music_cont, LV_OBJ_FLAG_HIDDEN);
-    if(list != NULL) lv_obj_add_flag(list, LV_OBJ_FLAG_HIDDEN);
-    if(imgbtn_home != NULL) lv_obj_add_flag(imgbtn_home, LV_OBJ_FLAG_HIDDEN);
-//    lv_obj_del(tv);
-//    lv_obj_clean(tv);
-    lv_obj_clear_flag(obj_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(tv_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(imgbtn_home, LV_OBJ_FLAG_CLICKABLE);
-}
 
 static const char * title_list[] = {
     "Waiting for true love",
@@ -147,76 +125,101 @@ static const uint32_t time_list[] = {
  *   GLOBAL FUNCTIONS
  **********************/
 
+static void music_create(lv_obj_t * parent)
+{
+    root = lv_obj_create(parent);
+    lv_obj_remove_style_all(root);
+    lv_obj_set_size(root, lv_pct(100), lv_pct(100));
+    lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(root, lv_color_hex(0x343247), 0);
+    lv_obj_update_layout(root);
+
+    list = lv_demo_music_list_create(root);
+    ctrl = lv_demo_music_main_create(root);
+    music_height = lv_obj_get_height(root);
+}
+
+static void home_event_cb(lv_event_t * e)
+{
+    LV_UNUSED(e);
+    back_to_home = 1;
+    /* Stop playback and rewind to the first track while the page is hidden, so
+     * the album slide/fade animations are never visible and the demo always
+     * reopens in its initial state. */
+    lv_demo_music_reset();
+
+    if(root != NULL) lv_obj_set_hidden(root, true);
+
+    lv_obj_set_hidden(obj_main, false);
+    lv_obj_set_hidden(led_performance, false);
+    lv_obj_set_hidden(led_main, false);
+    lv_obj_set_hidden(tv_main, false);
+}
+
 void lv_demo_music(unsigned char flag)
 {
-    if(0 == flag){
-        lv_obj_set_style_bg_color(lv_scr_act(), lv_color_hex(0x343247), 0);
+    if(0 == flag) {
+        lv_demo_args_t args;
+        lv_demo_args_init(&args);
+        music_create(args.parent);
 
-        list = _lv_demo_music_list_create(lv_scr_act());
-        ctrl = _lv_demo_music_main_create(lv_scr_act(), flag);
-        
-        imgbtn_home = lv_imgbtn_create(ctrl);
-        lv_imgbtn_set_src(imgbtn_home, LV_IMGBTN_STATE_PRESSED, &img_home, NULL, NULL);
-        lv_imgbtn_set_src(imgbtn_home, LV_IMGBTN_STATE_RELEASED, &img_home, NULL, NULL);
+        imgbtn_home = lv_imagebutton_create(root);
+        lv_imagebutton_set_src(imgbtn_home, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_home, NULL);
+        lv_imagebutton_set_src(imgbtn_home, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_home, NULL);
         lv_obj_set_size(imgbtn_home, 30, 30);
         lv_obj_align(imgbtn_home, LV_ALIGN_TOP_RIGHT, -3, 3);
         lv_obj_add_event_cb(imgbtn_home, home_event_cb, LV_EVENT_CLICKED, NULL);
-        lv_obj_add_flag(imgbtn_home, LV_OBJ_FLAG_CLICKABLE);
 
-        lv_obj_add_flag(list, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(ctrl, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_hidden(root, true);
+    }
+    else {
+        /* Just show the player again. Deleting and rebuilding it is not needed:
+         * the player is only hidden when the user leaves. */
+        if(root == NULL) return;
+        lv_obj_set_hidden(root, false);
+
+        /* `ctrl` is the transparent scroll container; scrolling it down slides
+         * the player away and shows the track list. Its scroll position survives
+         * hiding, so reopen on the player page. */
+        lv_obj_scroll_to_y(ctrl, 0, LV_ANIM_OFF);
+
+        lv_demo_music_main_intro();
+
+        lv_obj_invalidate(lv_screen_active());
+    }
+}
+
+void lv_demo_music_with_args(const lv_demo_args_t * args)
+{
+    LV_ASSERT_NULL(args);
+
+    music_create(args->parent);
+    lv_demo_music_main_intro();
 
 #if LV_DEMO_MUSIC_AUTO_PLAY
     lv_timer_create(auto_step_cb, 1000, NULL);
 #endif
-    }else{
-        /* Just show the player again. Deleting and rebuilding it is not safe:
-         * lv_demo_music_main.c / _list.c keep a lot of static object pointers
-         * plus running timers and animations that are not torn down with the
-         * widgets, so the next timer tick would run on freed objects. */
-        if(ctrl != NULL) {
-            lv_obj_clear_flag(ctrl, LV_OBJ_FLAG_HIDDEN);
-        }
-        if(music_cont != NULL)  lv_obj_clear_flag(music_cont, LV_OBJ_FLAG_HIDDEN);
-        if(list != NULL)        lv_obj_clear_flag(list, LV_OBJ_FLAG_HIDDEN);
-        if(imgbtn_home != NULL) lv_obj_clear_flag(imgbtn_home, LV_OBJ_FLAG_HIDDEN);
-
-        /* `ctrl` is the transparent scroll container returned by
-         * _lv_demo_music_main_create(); scrolling it down slides the player away
-         * and lets the track list show through. Its scroll position survives
-         * hiding, so without this the demo reopens on the track list instead of
-         * on the player page. */
-        if(ctrl != NULL) {
-            lv_obj_scroll_to_y(ctrl, 0, LV_ANIM_OFF);
-        }
-
-        /* With flag != 0 this does not rebuild anything: it restarts the second
-         * counter and replays the intro (logo + fade in of the boxes). */
-        _lv_demo_music_main_create(lv_scr_act(), flag);
-
-        lv_obj_invalidate(lv_scr_act());
-    }
 }
 
-const char * _lv_demo_music_get_title(uint32_t track_id)
+const char * lv_demo_music_get_title(uint32_t track_id)
 {
     if(track_id >= sizeof(title_list) / sizeof(title_list[0])) return NULL;
     return title_list[track_id];
 }
 
-const char * _lv_demo_music_get_artist(uint32_t track_id)
+const char * lv_demo_music_get_artist(uint32_t track_id)
 {
     if(track_id >= sizeof(artist_list) / sizeof(artist_list[0])) return NULL;
     return artist_list[track_id];
 }
 
-const char * _lv_demo_music_get_genre(uint32_t track_id)
+const char * lv_demo_music_get_genre(uint32_t track_id)
 {
     if(track_id >= sizeof(genre_list) / sizeof(genre_list[0])) return NULL;
     return genre_list[track_id];
 }
 
-uint32_t _lv_demo_music_get_track_length(uint32_t track_id)
+uint32_t lv_demo_music_get_track_length(uint32_t track_id)
 {
     if(track_id >= sizeof(time_list) / sizeof(time_list[0])) return 0;
     return time_list[track_id];
@@ -242,28 +245,28 @@ static void auto_step_cb(lv_timer_t * t)
 
     switch(state) {
         case 5:
-            _lv_demo_music_album_next(true);
+            lv_demo_music_album_next(true);
             break;
 
         case 6:
-            _lv_demo_music_album_next(true);
+            lv_demo_music_album_next(true);
             break;
         case 7:
-            _lv_demo_music_album_next(true);
+            lv_demo_music_album_next(true);
             break;
         case 8:
-            _lv_demo_music_play(0);
+            lv_demo_music_play(0);
             break;
 #if LV_DEMO_MUSIC_SQUARE || LV_DEMO_MUSIC_ROUND
         case 11:
-            lv_obj_scroll_by(ctrl, 0, -LV_VER_RES, LV_ANIM_ON);
+            lv_obj_scroll_by(ctrl, 0, -music_height, LV_ANIM_ON);
             break;
         case 13:
-            lv_obj_scroll_by(ctrl, 0, -LV_VER_RES, LV_ANIM_ON);
+            lv_obj_scroll_by(ctrl, 0, -music_height, LV_ANIM_ON);
             break;
 #else
         case 12:
-            lv_obj_scroll_by(ctrl, 0, -LV_VER_RES, LV_ANIM_ON);
+            lv_obj_scroll_by(ctrl, 0, -music_height, LV_ANIM_ON);
             break;
 #endif
         case 15:
@@ -273,18 +276,18 @@ static void auto_step_cb(lv_timer_t * t)
             lv_obj_scroll_by(list, 0, 300, LV_ANIM_ON);
             break;
         case 18:
-            _lv_demo_music_play(1);
+            lv_demo_music_play(1);
             break;
         case 19:
-            lv_obj_scroll_by(ctrl, 0, LV_VER_RES, LV_ANIM_ON);
+            lv_obj_scroll_by(ctrl, 0, music_height, LV_ANIM_ON);
             break;
 #if LV_DEMO_MUSIC_SQUARE || LV_DEMO_MUSIC_ROUND
         case 20:
-            lv_obj_scroll_by(ctrl, 0, LV_VER_RES, LV_ANIM_ON);
+            lv_obj_scroll_by(ctrl, 0, music_height, LV_ANIM_ON);
             break;
 #endif
         case 30:
-            _lv_demo_music_play(2);
+            lv_demo_music_play(2);
             break;
         case 40: {
                 lv_obj_t * bg = lv_layer_top();
@@ -300,7 +303,9 @@ static void auto_step_cb(lv_timer_t * t)
                 lv_obj_t * num = lv_label_create(bg);
                 lv_obj_set_style_text_font(num, font_large, 0);
 #if LV_USE_PERF_MONITOR
-                lv_label_set_text_fmt(num, "%d", lv_refr_get_fps_avg());
+                lv_display_t * disp = lv_display_get_default();
+                const lv_sysmon_perf_info_t * info = lv_subject_get_pointer(disp->perf_sysmon_backend.subject);
+                lv_label_set_text_fmt(num, "%" LV_PRIu32, info->calculated.fps_avg_total);
 #endif
                 lv_obj_align(num, LV_ALIGN_TOP_MID, 0, 120);
 
@@ -316,8 +321,8 @@ static void auto_step_cb(lv_timer_t * t)
                 break;
             }
         case 41:
-            lv_scr_load(lv_obj_create(NULL));
-            _lv_demo_music_pause();
+            lv_screen_load(lv_obj_create(NULL));
+            lv_demo_music_pause();
             break;
     }
     state++;

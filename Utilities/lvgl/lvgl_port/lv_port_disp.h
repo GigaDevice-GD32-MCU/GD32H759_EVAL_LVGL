@@ -27,6 +27,15 @@ extern "C" {
  *********************/
 #define LV_HOR_RES_MAX          (480)
 #define LV_VER_RES_MAX          (272)
+
+/* Two LV_BUF_LINES line buffers in AXI SRAM, partial refresh, the rendered areas
+ * are copied into the TLI frame (AXI SRAM) */
+#define LV_BUF_LINES            150
+
+/* How a rendered area is copied into the TLI frame
+ * 1: IPA, in the background (interrupt driven), can be combined with LV_USE_DRAW_IPA
+ * 0: CPU polling copy */
+#define LV_FLUSH_USE_IPA        1
 /**********************
  *      TYPEDEFS
  **********************/

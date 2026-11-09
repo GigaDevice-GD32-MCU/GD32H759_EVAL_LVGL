@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include "lv_demos.h"
 
+/* lv_menu is deprecated in LVGL v9.6 but still supported, silence the deprecation warnings of this file */
+LV_DEPRECATIONS_IGNORE_BEGIN
+
 extern void lcd_backlight_set_percent(uint8_t percent);
 #if LV_USE_MENU && LV_USE_MSGBOX && LV_BUILD_EXAMPLES
 
@@ -52,7 +55,7 @@ static const char str_weight_limit_cn[] = {0xE9,0x87,0x8D,0xE9,0x87,0x8F,0xE9,0x
 static const char str_brightness_cn[] = {0xE4,0xBA,0xAE,0xE5,0xBA,0xA6,0x00};
 /* 制造商: 兆易创新\r\nMCU型号: GD32H759IM\r\nFlash大小: 3840KB\r\nRAM大小: 1024KB\r\n固件版本: 1.7.0 */
 static const char str_mcu_details_cn[] = {0xE5,0x88,0xB6,0xE9,0x80,0xA0,0xE5,0x95,0x86,0x3A,0x20,0xE5,0x85,0x86,0xE6,0x98,0x93,0xE5,0x88,0x9B,0xE6,0x96,0xB0,0x0D,0x0A,0x4D,0x43,0x55,0xE5,0x9E,0x8B,0xE5,0x8F,0xB7,0x3A,0x20,0x47,0x44,0x33,0x32,0x48,0x37,0x35,0x39,0x49,0x4D,0x0D,0x0A,0x46,0x6C,0x61,0x73,0x68,0xE5,0xA4,0xA7,0xE5,0xB0,0x8F,0x3A,0x20,0x33,0x38,0x34,0x30,0x4B,0x42,0x0D,0x0A,0x52,0x41,0x4D,0xE5,0xA4,0xA7,0xE5,0xB0,0x8F,0x3A,0x20,0x31,0x30,0x32,0x34,0x4B,0x42,0x0D,0x0A,0xE5,0x9B,0xBA,0xE4,0xBB,0xB6,0xE7,0x89,0x88,0xE6,0x9C,0xAC,0x3A,0x20,0x31,0x2E,0x37,0x2E,0x30,0x00};
-static const char str_lvgl_version_cn[] = {0x4C,0x56,0x47,0x4C,0xE7,0x89,0x88,0xE6,0x9C,0xAC,0x3A,0x20,0x56,0x38,0x2E,0x33,0x2E,0x31,0x31,0x00};
+static const char str_lvgl_version_cn[] = {0x4C,0x56,0x47,0x4C,0xE7,0x89,0x88,0xE6,0x9C,0xAC,0x3A,0x20,0x56,0x39,0x2E,0x36,0x2E,0x30,0x00};
 static const char str_total_size_cn[] = {0xE6,0x80,0xBB,0xE5,0xA4,0xA7,0xE5,0xB0,0x8F,0x00};
 static const char str_mem_used_cn[] = {0xE5,0xB7,0xB2,0xE7,0x94,0xA8,0xE5,0x86,0x85,0xE5,0xAD,0x98,0x00};
 static const char str_frag_cn[] = {0xE7,0xA2,0x8E,0xE7,0x89,0x87,0xE5,0x8C,0x96,0xE7,0xA8,0x8B,0xE5,0xBA,0xA6,0x00};
@@ -75,7 +78,7 @@ static const char* str_mcu_details[] = {
     "Manufacturer: GigaDevice\r\nMCU CPU: GD32H759IM\r\nFlash Size: 3840KB\r\nRAM Size: 1024KB\r\nFW Version: 1.7.0",
     str_mcu_details_cn
 };
-static const char* str_lvgl_version[] = {"LVGL Version: V8.3.11", str_lvgl_version_cn};
+static const char* str_lvgl_version[] = {"LVGL Version: V9.6.0", str_lvgl_version_cn};
 
 static const char* str_total_size[] = {"Total size", str_total_size_cn};
 static const char* str_mem_used[] = {"Memory used", str_mem_used_cn};
@@ -400,8 +403,8 @@ static void brightness_slider_event_handler(lv_event_t * e)
 
 void lv_demo_setting(lv_obj_t * parent)
 {
-    lv_obj_add_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(led_main, true);
+    lv_obj_set_hidden(led_performance, true);
     menu = lv_menu_create(parent);
 
     lv_color_t bg_color = lv_obj_get_style_bg_color(menu, 0);
@@ -411,9 +414,9 @@ void lv_demo_setting(lv_obj_t * parent)
     else {
         lv_obj_set_style_bg_color(menu, lv_color_darken(lv_obj_get_style_bg_color(menu, 0), 50), 0);
     }
-    lv_menu_set_mode_root_back_btn(menu, LV_MENU_ROOT_BACK_BTN_ENABLED);
+    lv_menu_set_mode_root_back_button(menu, LV_MENU_ROOT_BACK_BUTTON_ENABLED);
     lv_obj_add_event_cb(menu, back_event_handler, LV_EVENT_CLICKED, menu);
-    lv_obj_set_size(menu, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+    lv_obj_set_size(menu, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL));
     lv_obj_center(menu);
 
     lv_obj_t * cont;
@@ -518,7 +521,7 @@ void lv_demo_setting(lv_obj_t * parent)
 
     lv_menu_set_sidebar_page(menu, root_page);
 
-    lv_event_send(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED, NULL);
+    lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED, NULL);
 }
 
 static void back_event_handler(lv_event_t * e)
@@ -526,10 +529,10 @@ static void back_event_handler(lv_event_t * e)
     lv_obj_t * obj = lv_event_get_target(e);
     lv_obj_t * menu_to_delete = lv_event_get_user_data(e);
 
-    if(lv_menu_back_btn_is_root(menu_to_delete, obj)) {
-        lv_obj_clear_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
+    if(lv_menu_back_button_is_root(menu_to_delete, obj)) {
+        lv_obj_set_hidden(led_main, false);
+        lv_obj_set_hidden(led_performance, false);
+        lv_obj_set_hidden(obj_performance, false);
         
         /* Clear all static references before deleting menu to avoid dangling pointers */
         dropdown_widget = NULL;
@@ -551,14 +554,14 @@ static void back_event_handler(lv_event_t * e)
         menu = NULL;
         root_page = NULL;
         
-        lv_obj_del(menu_to_delete);
+        lv_obj_delete(menu_to_delete);
     }
 }
 
 static lv_obj_t * find_first_label_child(lv_obj_t * parent)
 {
     if(parent == NULL) return NULL;
-    uint32_t child_cnt = lv_obj_get_child_cnt(parent);
+    uint32_t child_cnt = lv_obj_get_child_count(parent);
     for(uint32_t i = 0; i < child_cnt; i++) {
         lv_obj_t * child = lv_obj_get_child(parent, i);
         if(lv_obj_check_type(child, &lv_label_class)) {
@@ -571,7 +574,7 @@ static lv_obj_t * find_first_label_child(lv_obj_t * parent)
 static void set_dropdown_internal_label_font(lv_obj_t * dropdown, const lv_font_t * font)
 {
     if(dropdown == NULL || font == NULL) return;
-    uint32_t child_cnt = lv_obj_get_child_cnt(dropdown);
+    uint32_t child_cnt = lv_obj_get_child_count(dropdown);
     for(uint32_t i = 0; i < child_cnt; i++) {
         lv_obj_t * child = lv_obj_get_child(dropdown, i);
         if(lv_obj_check_type(child, &lv_label_class)) {
@@ -598,7 +601,7 @@ static void set_dropdown_full_font(lv_obj_t * dropdown, const lv_font_t * font)
         lv_obj_set_style_text_font(list, font, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(list, font, LV_PART_ITEMS | LV_STATE_DEFAULT);
 
-        uint32_t cnt = lv_obj_get_child_cnt(list);
+        uint32_t cnt = lv_obj_get_child_count(list);
         for(uint32_t i = 0; i < cnt; i++) {
             lv_obj_t * c = lv_obj_get_child(list, i);
             lv_obj_set_style_text_font(c, font, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -616,7 +619,7 @@ static void switch_handler(lv_event_t * e)
         if(lv_obj_has_state(obj, LV_STATE_CHECKED)) {
             lv_menu_set_page(menu, NULL);
             lv_menu_set_sidebar_page(menu, root_page);
-            lv_event_send(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED, NULL);
+            lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED, NULL);
         }
         else {
             lv_menu_set_sidebar_page(menu, NULL);
@@ -635,14 +638,14 @@ static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char *
     lv_obj_t * label = NULL;
 
     if(icon) {
-        img = lv_img_create(obj);
-        lv_img_set_src(img, icon);
+        img = lv_image_create(obj);
+        lv_image_set_src(img, icon);
     }
 
     if(txt) {
         label = lv_label_create(obj);
         lv_label_set_text(label, txt);
-        lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
         lv_obj_set_flex_grow(label, 1);
         
         /* Set font based on current language */
@@ -651,7 +654,7 @@ static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char *
     }
 
     if(builder_variant == LV_MENU_ITEM_BUILDER_VARIANT_2 && icon && txt) {
-        lv_obj_add_flag(img, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+        lv_obj_set_flex_in_new_track(img, true);
         lv_obj_swap(img, label);
     }
 
@@ -667,7 +670,7 @@ static lv_obj_t * create_slider(lv_obj_t * parent, const char * icon, const char
     const lv_font_t * font = get_ui_font();
     
     /* Find the label child and set its font */
-    uint32_t child_cnt = lv_obj_get_child_cnt(obj);
+    uint32_t child_cnt = lv_obj_get_child_count(obj);
     for(uint32_t i = 0; i < child_cnt; i++) {
         lv_obj_t * child = lv_obj_get_child(obj, i);
         if(lv_obj_check_type(child, &lv_label_class)) {
@@ -682,7 +685,7 @@ static lv_obj_t * create_slider(lv_obj_t * parent, const char * icon, const char
     lv_slider_set_value(slider, val, LV_ANIM_OFF);
 
     if(icon == NULL) {
-        lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+        lv_obj_set_flex_in_new_track(slider, true);
     }
 
     return obj;
@@ -713,10 +716,12 @@ static lv_obj_t * create_dropdown(lv_obj_t * parent, const char * icon, const ch
     set_dropdown_full_font(dropdown, font);
     
     if(icon == NULL) {
-        lv_obj_add_flag(dropdown, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+        lv_obj_set_flex_in_new_track(dropdown, true);
     }
 
     return obj;
 }
 
 #endif
+
+LV_DEPRECATIONS_IGNORE_END
