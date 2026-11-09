@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_rspdif.h"
 
 #define RSPDIF_INIT_MASK                          0xFFC88004U    /*!< RSPDIF parameter initialization mask */
@@ -574,5 +572,3 @@ void rspdif_interrupt_flag_clear(rspdif_interrupt_flag_enum int_flag)
 {
     RSPDIF_STATC |= BIT(RSPDIF_BIT_POS2(int_flag));
 }
-
-#endif /* GD32H75E */

@@ -109,7 +109,7 @@ OF SUCH DAMAGE.
 #define SPI_INT_RPIE                    BIT(0)                                  /*!< RP interrupt enable */
 #define SPI_INT_TPIE                    BIT(1)                                  /*!< TP interrupt enable */
 #define SPI_INT_DPIE                    BIT(2)                                  /*!< DP interrupt enable */
-#define SPI_INT_ESTCIE                  BIT(3)                                  /*!< end of transfer or TXFIFO clear interrupt enable */
+#define SPI_INT_ESTCIE                  BIT(3)                                  /*!< end of transfer or suspend or TXFIFO clear interrupt enable */
 #define SPI_INT_TXFIE                   BIT(4)                                  /*!< transmission filled interrupt enable */
 #define SPI_INT_TXUREIE                 BIT(5)                                  /*!< underrun error interrupt enable */
 #define SPI_INT_RXOREIE                 BIT(6)                                  /*!< overrun error interrupt enable */
@@ -470,7 +470,7 @@ typedef struct
 #define SPI_I2S_INT_RP                  SPI_INT_RPIE                            /*!< RP interrupt */
 #define SPI_I2S_INT_TP                  SPI_INT_TPIE                            /*!< TP interrupt */
 #define SPI_I2S_INT_DP                  SPI_INT_DPIE                            /*!< DP interrupt */
-#define SPI_I2S_INT_ESTC                SPI_INT_ESTCIE                          /*!< end of transfer or TXFIFO clear interrupt */
+#define SPI_I2S_INT_ESTC                SPI_INT_ESTCIE                          /*!< end of transfer or suspend or TXFIFO clear interrupt */
 #define SPI_I2S_INT_TXF                 SPI_INT_TXFIE                           /*!< transmission filled interrupt */
 #define SPI_I2S_INT_TXURE               SPI_INT_TXUREIE                         /*!< underrun error interrupt */
 #define SPI_I2S_INT_RXORE               SPI_INT_RXOREIE                         /*!< overrun error interrupt */
@@ -495,6 +495,7 @@ typedef struct
 #define SPI_I2S_INT_FLAG_FERR           SPI_STAT_FERR                           /*!< TI frame error interrupt flag */
 #define SPI_I2S_INT_FLAG_CONFERR        SPI_STAT_CONFERR                        /*!< mode error interrupt flag */
 #define SPI_I2S_INT_FLAG_TXSERF         SPI_STAT_TXSERF                         /*!< TXSER reload interrupt flag */
+#define SPI_I2S_INT_FLAG_SPD            SPI_STAT_SPD                            /*!< suspend interrupt flag */
 #define SPI_I2S_INT_FLAG_TC             SPI_STAT_TC                             /*!< TXFIFO clear interrupt flag */
 
 #define SPI_I2S_INT_FLAG_MASK           (SPI_STAT_RP | SPI_STAT_TP | SPI_STAT_DP | SPI_STAT_ET | SPI_STAT_TXF | \
@@ -522,7 +523,7 @@ typedef struct
 #define I2S_FLAG_RP                     SPI_STAT_RP                             /*!< RP flag */
 #define I2S_FLAG_TP                     SPI_STAT_TP                             /*!< TP flag */
 #define I2S_FLAG_DP                     SPI_STAT_DP                             /*!< DP flag */
-#define I2S_FLAG_ET                     SPI_STAT_ET                             /*!< end of transfer or TXFIFO clear flag */
+#define I2S_FLAG_ET                     SPI_STAT_ET                             /*!< end of transfer or suspend or TXFIFO clear flag */
 #define I2S_FLAG_TXF                    SPI_STAT_TXF                            /*!< transmission filled flag */
 #define I2S_FLAG_TXURERR                SPI_STAT_TXURERR                        /*!< underrun error flag */
 #define I2S_FLAG_RXORERR                SPI_STAT_RXORERR                        /*!< overrun error flag */

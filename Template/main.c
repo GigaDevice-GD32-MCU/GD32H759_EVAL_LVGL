@@ -59,11 +59,6 @@ OF SUCH DAMAGE.
     extern FRESULT scanfiles_test(void);
 #endif
 
-/* FreeRTOS*/
-#if SYS_configUSE_FREERTOS
-    #include "taskmain.h"
-#endif
-
 uint16_t back_to_home = 1;
 float g_temperature = 0;
 
@@ -103,7 +98,7 @@ int main(void)
 
  #if SYS_configUSE_FAT32FS
      lv_fs_fatfs_init();
-     /* Mount the card once here, while no LVGL timer or RTOS task is running
+     /* Mount the card once here, while no LVGL timer is running
         yet. sd_init() reconfigures PLL1 and takes a long time, doing it from
         inside a button callback is much less reliable. */
      scanfiles_test();
@@ -126,23 +121,17 @@ int main(void)
     fwdgt_enable();
 #endif
 
-#if SYS_configUSE_FREERTOS
-    taskmainInit();
-#endif
-
     while(1){
- #if !SYS_configUSE_FREERTOS
-         delay_1ms(5);
- #if SYS_configUSE_LVGL
-         lv_task_handler();
- #endif
-
- #if SYS_configUSE_WATCHDOG
-         fwdgt_counter_reload();
- #endif
-       /* value convert */
-       g_temperature = Get_temperature();
+        delay_1ms(5);
+#if SYS_configUSE_LVGL
+        lv_task_handler();
 #endif
+
+#if SYS_configUSE_WATCHDOG
+        fwdgt_counter_reload();
+#endif
+        /* value convert */
+        g_temperature = Get_temperature();
     }
 }
 

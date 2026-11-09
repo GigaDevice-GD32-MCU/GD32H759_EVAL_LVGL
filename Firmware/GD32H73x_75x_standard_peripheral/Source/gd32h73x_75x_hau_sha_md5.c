@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_hau.h"
 
 #define SHAMD5_BSY_TIMEOUT    ((uint32_t)0x00010000U)
@@ -512,5 +510,3 @@ static ErrStatus hau_hmac_calculate(uint32_t algo, uint8_t key[], uint32_t keysi
     }
     return SUCCESS;
 }
-
-#endif /* GD32H75E */

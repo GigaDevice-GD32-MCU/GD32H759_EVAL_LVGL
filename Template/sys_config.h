@@ -3,9 +3,6 @@
 
 /* ========== System Component Configuration ========== */
 
-/* FreeRTOS real-time operating system: 1=Enable, 0=Disable */
-#define SYS_configUSE_FREERTOS			0
-
 /* FAT32 file system support: 1=Enable, 0=Disable */
 #define SYS_configUSE_FAT32FS			1
 

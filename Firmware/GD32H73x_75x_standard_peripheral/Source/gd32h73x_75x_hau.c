@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_hau.h"
 #include "gd32h73x_75x_rcu.h"
 
@@ -450,5 +448,3 @@ void hau_interrupt_flag_clear(uint32_t int_flag)
 {
     HAU_STAT = ~(uint32_t)(int_flag & HAU_FLAG_CLEAR_MASK);
 }
-
-#endif /* GD32H75E */

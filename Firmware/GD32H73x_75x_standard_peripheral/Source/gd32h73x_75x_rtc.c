@@ -964,7 +964,7 @@ void rtc_bypass_shadow_disable(void)
     RTC_WPK = RTC_UNLOCK_KEY1;
     RTC_WPK = RTC_UNLOCK_KEY2;
 
-    RTC_CTL &= (uint32_t)~RTC_CTL_BPSHAD;
+    RTC_CTL &= (uint8_t)~RTC_CTL_BPSHAD;
 
     /* enable the write protection */
     RTC_WPK = RTC_LOCK_KEY;

@@ -32,8 +32,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32H75E
-
 #include "gd32h73x_75x_sdio.h"
 
 /* IDMA buffer value offset macro */
@@ -1047,5 +1045,3 @@ void sdio_boot_disable(uint32_t sdio_periph)
 {
     SDIO_CMDCTL(sdio_periph) &= ~SDIO_CMDCTL_BOOTMODEN;
 }
-
-#endif /* GD32H75E */

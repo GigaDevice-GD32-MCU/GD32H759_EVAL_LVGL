@@ -147,6 +147,7 @@ void about_event_cb(lv_event_t *e)
     /* imagebtn wuxinghongqi */
     lv_obj_t *img1_cn = lv_imgbtn_create(cont_lan);
     lv_imgbtn_set_src(img1_cn, LV_IMGBTN_STATE_RELEASED, &wuxinghongqi_32, NULL, NULL);
+    lv_imgbtn_set_src(img1_cn, LV_IMGBTN_STATE_PRESSED, &wuxinghongqi_32, NULL, NULL);
     lv_imgbtn_set_src(img1_cn, LV_IMGBTN_STATE_DISABLED, &wuxinghongqi_32, NULL, NULL);
     lv_obj_align(img1_cn, LV_ALIGN_BOTTOM_MID, -90, 12);
     lv_obj_set_size(img1_cn, 32, 21);
@@ -154,6 +155,7 @@ void about_event_cb(lv_event_t *e)
     /* imagebtn America */
     lv_obj_t *img1_en = lv_imgbtn_create(cont_lan);
     lv_imgbtn_set_src(img1_en, LV_IMGBTN_STATE_RELEASED, &meiguo_32, NULL, NULL);
+    lv_imgbtn_set_src(img1_en, LV_IMGBTN_STATE_PRESSED, &meiguo_32, NULL, NULL);
     lv_imgbtn_set_src(img1_en, LV_IMGBTN_STATE_DISABLED, &meiguo_32, NULL, NULL);
     lv_obj_align(img1_en, LV_ALIGN_BOTTOM_MID, -30, 12);
     lv_obj_set_size(img1_en, 32, 21);
@@ -161,6 +163,7 @@ void about_event_cb(lv_event_t *e)
     /* imagebtn Japan */
     lv_obj_t *img1_jn = lv_imgbtn_create(cont_lan);
     lv_imgbtn_set_src(img1_jn, LV_IMGBTN_STATE_RELEASED, &riben_32, NULL, NULL);
+    lv_imgbtn_set_src(img1_jn, LV_IMGBTN_STATE_PRESSED, &riben_32, NULL, NULL);
     lv_imgbtn_set_src(img1_jn, LV_IMGBTN_STATE_DISABLED, &riben_32, NULL, NULL);
     lv_obj_align(img1_jn, LV_ALIGN_BOTTOM_MID, 30, 12);
     lv_obj_set_size(img1_jn, 32, 21);
@@ -168,6 +171,7 @@ void about_event_cb(lv_event_t *e)
     /* imagebtn Germany */
     lv_obj_t *img1_gn = lv_imgbtn_create(cont_lan);
     lv_imgbtn_set_src(img1_gn, LV_IMGBTN_STATE_RELEASED, &deguo_32, NULL, NULL);
+    lv_imgbtn_set_src(img1_gn, LV_IMGBTN_STATE_PRESSED, &deguo_32, NULL, NULL);
     lv_imgbtn_set_src(img1_gn, LV_IMGBTN_STATE_DISABLED, &deguo_32, NULL, NULL);
     lv_obj_align(img1_gn, LV_ALIGN_BOTTOM_MID, 90, 12);
     lv_obj_set_size(img1_gn, 32, 21);

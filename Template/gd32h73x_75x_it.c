@@ -113,25 +113,25 @@ void DebugMon_Handler(void)
 {
 }
 
-///*!
-//    \brief      this function handles SVC exception
-//    \param[in]  none
-//    \param[out] none
-//    \retval     none
-//*/
-//void SVC_Handler(void)
-//{
-//}
+/*!
+    \brief      this function handles SVC exception
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+void SVC_Handler(void)
+{
+}
 
-///*!
-//    \brief      this function handles PendSV exception
-//    \param[in]  none
-//    \param[out] none
-//    \retval     none
-//*/
-//void PendSV_Handler(void)
-//{
-//}
+/*!
+    \brief      this function handles PendSV exception
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+void PendSV_Handler(void)
+{
+}
 
 /*!
     \brief      this function handles SysTick exception
@@ -141,11 +141,6 @@ void DebugMon_Handler(void)
 */
 void SysTick_Handler(void)
 {
-#if SYS_configUSE_FREERTOS
-    if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-        xPortSysTickHandler();
-    }
-#endif
     delay_decrement();
 #if SYS_configUSE_LVGL
     lv_tick_inc(1);
