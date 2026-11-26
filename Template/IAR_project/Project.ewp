@@ -1320,9 +1320,6 @@
             <name>$PROJ_DIR$\..\..\Utilities\lvgl\lvgl\src\font\lv_font.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\Utilities\lvgl\lvgl\src\font\lv_font_dejavu_16_persian_hebrew.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\..\Utilities\lvgl\lvgl\src\font\lv_font_fmt_txt.c</name>
         </file>
         <file>
@@ -1396,9 +1393,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\Utilities\lvgl\lvgl\src\font\lv_font_montserrat_8.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\Utilities\lvgl\lvgl\src\font\lv_font_simsun_16_cjk.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\Utilities\lvgl\lvgl\src\font\lv_font_unscii_16.c</name>
