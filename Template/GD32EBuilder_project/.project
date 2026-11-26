@@ -765,11 +765,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Utilities/lvgl/lvgl/src/font/lv_font.c</locationURI>
 		</link>
 		<link>
-			<name>lvgl/lv_font_dejavu_16_persian_hebrew.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Utilities/lvgl/lvgl/src/font/lv_font_dejavu_16_persian_hebrew.c</locationURI>
-		</link>
-		<link>
 			<name>lvgl/lv_font_fmt_txt.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Utilities/lvgl/lvgl/src/font/lv_font_fmt_txt.c</locationURI>
@@ -893,11 +888,6 @@
 			<name>lvgl/lv_font_montserrat_8.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Utilities/lvgl/lvgl/src/font/lv_font_montserrat_8.c</locationURI>
-		</link>
-		<link>
-			<name>lvgl/lv_font_simsun_16_cjk.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Utilities/lvgl/lvgl/src/font/lv_font_simsun_16_cjk.c</locationURI>
 		</link>
 		<link>
 			<name>lvgl/lv_font_unscii_16.c</name>

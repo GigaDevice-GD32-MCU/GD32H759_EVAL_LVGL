@@ -1,0 +1,78 @@
+NOTICE
+======
+
+THIRD-PARTY SOFTWARE AND FONT NOTICES
+
+
+1. Overview
+-----------
+This project references LVGL through Git submodules. The LVGL source code and
+its bundled font files are NOT copied into this repository; they are fetched
+from the official LVGL repository and pinned to the exact tags declared in
+.gitmodules.
+
+After cloning, initialize the submodules with:
+
+    git submodule update --init --recursive
+
+
+2. Component: LVGL
+------------------
+- Versions referenced : v8.3.11 and v9.6.0
+- Project home        : https://github.com/lvgl/lvgl
+- License             : MIT License
+- Copyright           : Copyright (c) LVGL Kft. The exact copyright line is
+                        contained in the LICENCE.txt file inside each pinned
+                        version of LVGL.
+- Reference license   : licenses/LVGL-MIT-LICENCE.txt
+
+
+3. Fonts distributed with LVGL and/or built into the product firmware
+---------------------------------------------------------------------
+The MIT License covers only the LVGL source code. The fonts listed below
+remain under their respective licenses, which must be observed independently.
+
+3.1 Montserrat (Montserrat-Medium.ttf)
+    - Copyright 2011 The Montserrat Project Authors
+    - License : SIL Open Font License, Version 1.1
+    - Text    : licenses/Montserrat-SIL-OFL.txt
+
+3.2 DejaVu Sans (DejaVuSans.ttf)
+    - Bitstream Vera Fonts, Copyright (c) 2003 by Bitstream, Inc.
+    - DejaVu changes are in the public domain; glyphs imported from Arev
+      fonts are Copyright (c) Tavmjong Bah.
+    - License : Bitstream Vera License (all copyright and trademark notices
+                are reproduced in the full text)
+    - Text    : licenses/DejaVuSans-BitstreamVera-LICENSE.txt
+
+3.3 Font Awesome 5 Free (FontAwesome5-Solid+Brands+Regular.woff)
+    - Copyright (c) Fonticons, Inc.
+    - The .woff font files used in this project are licensed under the SIL
+      Open Font License, Version 1.1. Within the Font Awesome Free package,
+      icons (SVG/JS) are licensed under CC BY 4.0 and code under the MIT
+      License.
+    - Only the Free edition is used; Font Awesome Pro is not included.
+    - Text    : licenses/FontAwesome5-OFL-LICENSE.txt
+
+3.4 unscii-8 (unscii-8.ttf)
+    - Created by Viznut. The unscii-8 variant is released into the Public
+      Domain according to the author's own declaration. The separately
+      available "unscii-16-full" variant is GPL-licensed and is NOT used in
+      this project.
+    - Author's notice : licenses/unscii-8-PublicDomain.html
+
+3.5 Source Han Sans SC (SourceHanSansSC-Normal.otf; LVGL v9.6.0 only)
+    - Copyright 2014-2021 Adobe, with Reserved Font Name "Source".
+    - License : SIL Open Font License, Version 1.1
+    - Text    : licenses/SourceHanSansSC-SIL-OFL.txt
+
+
+4. Compliance notes
+-------------------
+- The license texts in the licenses/ directory must be retained and provided
+  with every redistribution of the source code and of the product firmware,
+  including the on-device legal / open-source notices page.
+- Reserved Font Names (such as "Source" and "Font Awesome") must not be used
+  for any modified version of the corresponding fonts.
+- None of the fonts may be sold on a standalone basis; they may be embedded,
+  bundled and distributed as part of the software or the product.
