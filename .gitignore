@@ -76,3 +76,5 @@ bld/
 # Files by Third Party 
 /Template/AppWizard/Simulation/
 *.txt
+!/licenses/
+!/licenses/*
