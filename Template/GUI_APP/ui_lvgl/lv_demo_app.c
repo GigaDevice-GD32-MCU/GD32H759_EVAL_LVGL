@@ -13,26 +13,28 @@
 #include "lv_file_browse.h"
 #include "lv_about.h"
 #include "lv_port_disp.h"
+#if LV_USE_PERF_MONITOR
+    #include "lvgl_private.h"   /* the sysmon subject of the display */
+#endif
 
 /*********************
  *      DEFINES
  *********************/
-LV_IMG_DECLARE(img_background);
-LV_IMG_DECLARE(img_widget);
-LV_IMG_DECLARE(img_music);
-LV_IMG_DECLARE(img_speed);
-LV_IMG_DECLARE(img_about);
-LV_IMG_DECLARE(img_file);
-LV_IMG_DECLARE(img_qrcode);
-LV_IMG_DECLARE(img_home);
-LV_IMG_DECLARE(img_home_pressed);
-LV_IMG_DECLARE(img_gd_logo);
-LV_IMG_DECLARE(img_picture);
-LV_IMG_DECLARE(img_setting);
-LV_IMG_DECLARE(img_temp);
-LV_IMG_DECLARE(img_mem);
+LV_IMAGE_DECLARE(img_background);
+LV_IMAGE_DECLARE(img_widget);
+LV_IMAGE_DECLARE(img_music);
+LV_IMAGE_DECLARE(img_speed);
+LV_IMAGE_DECLARE(img_about);
+LV_IMAGE_DECLARE(img_file);
+LV_IMAGE_DECLARE(img_qrcode);
+LV_IMAGE_DECLARE(img_home);
+LV_IMAGE_DECLARE(img_home_pressed);
+LV_IMAGE_DECLARE(img_gd_logo);
+LV_IMAGE_DECLARE(img_picture);
+LV_IMAGE_DECLARE(img_setting);
+LV_IMAGE_DECLARE(img_temp);
+LV_IMAGE_DECLARE(img_mem);
 
-LV_FONT_DECLARE(lv_font_montserrat_8);
 LV_FONT_DECLARE(lv_font_digital_20);
 LV_FONT_DECLARE(lv_font_digital_30);
 
@@ -101,11 +103,7 @@ static lv_timer_t *meter_timer;
 static lv_timer_t *rtc_page_timer;
 static bool return_home_pending;
 
-extern lv_obj_t *music_cont;
-extern lv_obj_t *list;
 extern uint16_t back_to_home;
-
-extern lv_obj_t * tv;
 
 extern float g_temperature;
 extern void update_main_page_language(void);
@@ -119,11 +117,11 @@ void lv_demo_app(void);
 static void app_stop_page_timers(void)
 {
     if(chart_timer != NULL) {
-        lv_timer_del(chart_timer);
+        lv_timer_delete(chart_timer);
         chart_timer = NULL;
     }
     if(meter_timer != NULL) {
-        lv_timer_del(meter_timer);
+        lv_timer_delete(meter_timer);
         meter_timer = NULL;
     }
     /* rtc_page_timer is deliberately kept alive so that the clock keeps
@@ -141,7 +139,7 @@ static void return_home_async(void *data)
     /* The settings/about pages sit on the active screen too; their cached label
      * pointers must not survive the clean. */
     lv_demo_setting_reset_refs();
-    lv_obj_clean(lv_scr_act());
+    lv_obj_clean(lv_screen_active());
     back_to_home = 1;
 #if LV_USE_DEMO_MUSIC
     lv_demo_music(0);
@@ -213,15 +211,14 @@ if(!path || !buf || expected_size == 0) return false;
 
 static void widget_event_cb(lv_event_t *e)
 {
+    LV_UNUSED(e);
     back_to_home = 0;
     lv_demo_widgets();
-    lv_obj_clear_flag(tv, LV_OBJ_FLAG_HIDDEN);
+    lv_demo_widgets_add_home_button();
 
-    lv_obj_add_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(tv_main, LV_OBJ_FLAG_HIDDEN);
-    
-////    lv_obj_invalidate(obj_main);
+    lv_obj_set_hidden(led_main, true);
+    lv_obj_set_hidden(led_performance, true);
+    lv_obj_set_hidden(tv_main, true);
 }
 
 static void music_event_cb(lv_event_t *e)
@@ -230,12 +227,12 @@ static void music_event_cb(lv_event_t *e)
     back_to_home = 0;
     lv_demo_music(1);
      
-//    lv_obj_add_flag(obj_main, LV_OBJ_FLAG_HIDDEN);
-//    lv_obj_add_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
+//    lv_obj_set_hidden(obj_main, true);
+//    lv_obj_set_hidden(obj_performance, true);
 ////    lv_obj_invalidate(obj_main);
-    lv_obj_add_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(tv_main, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(led_main, true);
+    lv_obj_set_hidden(led_performance, true);
+    lv_obj_set_hidden(tv_main, true);
 }
 
 static void speed_event_cb(lv_event_t *e)
@@ -251,35 +248,35 @@ static void speed_event_cb(lv_event_t *e)
 
 static void qrcode_event_cb(lv_event_t *e)
 {
-    lv_obj_add_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(led_main, true);
+    lv_obj_set_hidden(led_performance, true);
     lv_demo_qrcode(lv_event_get_user_data(e));
-    lv_obj_add_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(obj_performance, true);
 }
 
 static void setting_event_cb(lv_event_t *e)
 {
     lv_demo_setting(lv_event_get_user_data(e));
-    lv_obj_add_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(obj_performance, true);
 }
 
 static void picture_event_cb(lv_event_t *e)
 {
-    lv_obj_add_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(led_main, true);
+    lv_obj_set_hidden(led_performance, true);
     lv_demo_picture(lv_event_get_user_data(e));
-    lv_obj_add_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_hidden(obj_performance, true);
 }
  
 static void close_event_cb(lv_event_t *e)
 {
     back_to_home = 1;
-    lv_obj_clear_state(imgbtn_music, LV_STATE_DISABLED);
-    lv_obj_clear_state(imgbtn_speed, LV_STATE_DISABLED);
-    lv_obj_clear_state(imgbtn_about, LV_STATE_DISABLED);
-    lv_obj_clear_state(imgbtn_widget, LV_STATE_DISABLED);
-//    lv_obj_add_flag(obj_about, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_del(lv_event_get_user_data(e));
+    lv_obj_remove_state(imgbtn_music, LV_STATE_DISABLED);
+    lv_obj_remove_state(imgbtn_speed, LV_STATE_DISABLED);
+    lv_obj_remove_state(imgbtn_about, LV_STATE_DISABLED);
+    lv_obj_remove_state(imgbtn_widget, LV_STATE_DISABLED);
+//    lv_obj_set_hidden(obj_about, true);
+    lv_obj_delete(lv_event_get_user_data(e));
 }
 
 /* true while music/widgets/benchmark owns the screen: the main page widgets are
@@ -288,8 +285,34 @@ static void close_event_cb(lv_event_t *e)
  * scroll position of the demo back to the top. */
 static bool app_page_is_covered(void)
 {
-    return (tv_main == NULL) || lv_obj_has_flag(tv_main, LV_OBJ_FLAG_HIDDEN);
+    return (tv_main == NULL) || lv_obj_is_hidden(tv_main);
 }
+
+#if LV_USE_PERF_MONITOR
+/* Latest values of the LVGL system monitor, i.e. exactly what the performance
+ * label in the bottom right corner shows. */
+static uint32_t sysmon_fps;
+static uint32_t sysmon_cpu;
+
+static void sysmon_perf_observer_cb(lv_observer_t * observer, lv_subject_t * subject)
+{
+    LV_UNUSED(observer);
+    const lv_sysmon_perf_info_t * info = lv_subject_get_pointer(subject);
+    sysmon_fps = info->calculated.fps;
+    sysmon_cpu = info->calculated.cpu;
+}
+
+static void sysmon_observe(void)
+{
+    static bool observed;
+    lv_display_t * disp = lv_display_get_default();
+
+    /* the display lives forever, subscribe only once */
+    if(observed || disp == NULL || disp->perf_sysmon_backend.subject == NULL) return;
+    lv_subject_add_observer(disp->perf_sysmon_backend.subject, sysmon_perf_observer_cb, NULL);
+    observed = true;
+}
+#endif
 
 static void update_chart(lv_timer_t *timer)
 {
@@ -298,11 +321,16 @@ static void update_chart(lv_timer_t *timer)
     if(cpu_chart == NULL || fps_chart == NULL) return;
     if(app_page_is_covered()) return;
 
+#if LV_USE_PERF_MONITOR
+    g_cpu = sysmon_cpu;
+    g_fps = sysmon_fps;
+#else
     g_cpu = 100U - lv_timer_get_idle();
     g_fps = lv_port_disp_get_fps();
-    lv_chart_set_next_value(cpu_chart, cpu_chart_series, g_cpu > 100U ? 100 : (lv_coord_t)g_cpu);
+#endif
+    lv_chart_set_next_value(cpu_chart, cpu_chart_series, g_cpu > 100U ? 100 : (int32_t)g_cpu);
     lv_chart_set_next_value(fps_chart, fps_chart_series,
-                            g_fps > CHART_FPS_MAX ? CHART_FPS_MAX : (lv_coord_t)g_fps);
+                            g_fps > CHART_FPS_MAX ? CHART_FPS_MAX : (int32_t)g_fps);
 }
 
 static void calendar_event_cb(lv_event_t *e)
@@ -312,16 +340,16 @@ static void calendar_event_cb(lv_event_t *e)
 
     if(code == LV_EVENT_VALUE_CHANGED) {
         lv_calendar_date_t date;
-        if(lv_calendar_get_pressed_date(obj, &date)) {
+        if(lv_calendar_get_pressed_date(obj, &date) == LV_RESULT_OK) {
 
             rtc_para.year = date.year;
             rtc_para.month = date.month;
             rtc_para.day = date.day;
             lv_label_set_text_fmt(font_label_year, "#FFFFFF %d/%02d/%02d", rtc_para.year, rtc_para.month, rtc_para.day);
 
-            lv_obj_del(calendar);
+            lv_obj_delete(calendar);
             calendar = NULL;
-            lv_obj_clear_flag(lv_layer_top(), LV_OBJ_FLAG_CLICKABLE);
+            lv_obj_set_clickable(lv_layer_top(), false);
             lv_obj_set_style_bg_opa(lv_layer_top(), LV_OPA_TRANSP, 0);
         }
 
@@ -334,7 +362,7 @@ static void year_label_evevt_cb(lv_event_t *e)
     lv_obj_t *obj = lv_event_get_current_target(e);
 
     if(code == LV_EVENT_CLICKED) {
-        lv_obj_add_flag(lv_layer_top(), LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_set_clickable(lv_layer_top(), true);
         calendar = lv_calendar_create(lv_layer_top());
         lv_obj_set_style_bg_opa(lv_layer_top(), LV_OPA_50, 0);
         lv_obj_set_style_bg_color(lv_layer_top(), lv_palette_main(LV_PALETTE_GREY), 0);
@@ -347,9 +375,9 @@ static void year_label_evevt_cb(lv_event_t *e)
         highlighted_days[0].day = rtc_para.day;
         lv_calendar_set_highlighted_dates(calendar, highlighted_days, 1);
 
-        lv_calendar_set_showed_date(calendar, rtc_para.year, rtc_para.month);
-        lv_calendar_header_dropdown_create(calendar);
-        lv_calendar_header_arrow_create(calendar);
+        lv_calendar_set_month_shown(calendar, rtc_para.year, rtc_para.month);
+        lv_calendar_add_header_dropdown(calendar);
+        lv_calendar_add_header_arrow(calendar);
         lv_obj_add_event_cb(calendar, calendar_event_cb, LV_EVENT_ALL, NULL);
     }
 }
@@ -466,60 +494,220 @@ static void rtc_timer(lv_timer_t *timer)
         lv_label_set_text_fmt(font_label_year, "#FFFFFF %d/%02d/%02d", rtc_para.year, rtc_para.month, rtc_para.day);
     }
 }
-static lv_obj_t *mem_meter;
+/* Memory and temperature dials. LVGL v9 has no lv_meter any more: the dials are
+ * an lv_scale with lv_arc indicators (and a line needle) on top of it. */
+#define DIAL_PAD            10      /* padding of the scale, the ticks start at the content edge */
+#define TEMP_MIN            (-40)
+#define TEMP_MAX            105
+#define TEMP_ROTATION       (180 - 45)
+#define DIAL_ANGLE_RANGE    270
 
-static void mem_set_value(void *indic, int32_t v)
-{
-    lv_meter_set_indicator_end_value(mem_meter, indic, v);
-}
+static lv_obj_t *mem_meter;
+static lv_obj_t *arc_total_size;
+static lv_obj_t *arc_mem_used;
+static lv_obj_t *arc_frag;
 
 static lv_obj_t *temp_mem_meter;
-static lv_meter_indicator_t *indic_temp;
+static lv_obj_t *temp_needle;
+static int32_t temp_needle_len;
 lv_obj_t * label_temp;
 
 static void tv_main_event_cb(lv_event_t *e)
 {
     if(lv_event_get_code(e) == LV_EVENT_VALUE_CHANGED) {
-        if(0 == lv_tabview_get_tab_act(tv_main)) {
+        if(0 == lv_tabview_get_tab_active(tv_main)) {
             lv_led_on(led_main);
             lv_led_off(led_performance);
             back_to_home = 1;
-        } else if(1 == lv_tabview_get_tab_act(tv_main)) {
+        } else if(1 == lv_tabview_get_tab_active(tv_main)) {
             lv_led_off(led_main);
             lv_led_on(led_performance);
         }
     }
 }
 
-//lv_event_code_t testtt;
-
-static lv_meter_indicator_t * indic_total_size;
 lv_obj_t * label_total_size;
-static lv_meter_indicator_t * indic_mem_used;
 lv_obj_t * label_mem_used;
-static lv_meter_indicator_t * indic_frag;
 lv_obj_t * label_frag;
-//static void scroll_begin_event(lv_event_t * e)
-//{
-//    /*Disable the scroll animations. Triggered when a tab button is clicked */
-////    if(lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
-//    testtt = lv_event_get_code(e);
-//    if( LV_EVENT_DRAW_POST_END == lv_event_get_code(e))
-//        back_to_home = 0;
-////    }
-//}
 
-//lv_event_code_t testtt2;
-//static void scroll_begin_event2(lv_event_t * e)
-//{
-//    /*Disable the scroll animations. Triggered when a tab button is clicked */
-////    if(lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
-//    testtt2 = lv_event_get_code(e);
-//    if( LV_EVENT_DRAW_POST_END == lv_event_get_code(e))
-//        back_to_home = 1;
-////    }
-//}
+/* An arc on top of a round scale: `r_mod` moves it inwards from the tick ring,
+ * the colored part spans `a_start`..`a_end` degrees of the scale. */
+static lv_obj_t * dial_arc_create(lv_obj_t * scale, int32_t r_mod, int32_t width, lv_color_t color,
+                                  int32_t rotation, int32_t a_start, int32_t a_end)
+{
+    int32_t d = lv_obj_get_content_width(scale) + 2 * r_mod;
 
+    lv_obj_t * arc = lv_arc_create(scale);
+    lv_obj_set_size(arc, d, d);
+    lv_obj_center(arc);
+    lv_obj_remove_style(arc, NULL, LV_PART_KNOB);
+    lv_obj_set_clickable(arc, false);
+    lv_obj_set_style_pad_all(arc, 0, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(arc, width, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(arc, width, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_opa(arc, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_arc_color(arc, color, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_rounded(arc, false, LV_PART_INDICATOR);
+    lv_arc_set_rotation(arc, rotation);
+    lv_arc_set_bg_angles(arc, a_start, a_end);
+    lv_arc_set_range(arc, 0, 100);
+    lv_arc_set_value(arc, 100);
+    return arc;
+}
+
+static int32_t temp_to_angle(int32_t t)
+{
+    return ((t - TEMP_MIN) * DIAL_ANGLE_RANGE) / (TEMP_MAX - TEMP_MIN);
+}
+
+/* Point the needle to `t`. lv_scale_set_line_needle_value() truncates the angle to
+ * whole degrees (1 degC is 1.86 deg here) and floors the tip coordinates, so some
+ * steps only made the needle 1px longer or shorter instead of turning it. The angle
+ * is computed in 0.1 deg (interpolating lv_trigo) and the tip is rounded instead. */
+static void temp_needle_set(lv_obj_t * scale, int32_t t)
+{
+    static lv_point_precise_t points[2];
+    /* the points are relative to the outer area of the (square) scale, see the
+     * translation of the needle in temp_dial_create() */
+    int32_t c = lv_obj_get_width(scale) / 2;
+    int32_t a10 = TEMP_ROTATION * 10 + (DIAL_ANGLE_RANGE * 10 * (t - TEMP_MIN)) / (TEMP_MAX - TEMP_MIN);
+    int32_t a = a10 / 10;
+    int32_t f = a10 % 10;
+    int32_t sin_v = (lv_trigo_sin(a) * (10 - f) + lv_trigo_sin(a + 1) * f) / 10;
+    int32_t cos_v = (lv_trigo_cos(a) * (10 - f) + lv_trigo_cos(a + 1) * f) / 10;
+
+    points[0].x = c;
+    points[0].y = c;
+    points[1].x = c + ((temp_needle_len * cos_v + (1 << (LV_TRIGO_SHIFT - 1))) >> LV_TRIGO_SHIFT);
+    points[1].y = c + ((temp_needle_len * sin_v + (1 << (LV_TRIGO_SHIFT - 1))) >> LV_TRIGO_SHIFT);
+    lv_line_set_points_mutable(temp_needle, points, 2);
+}
+
+static void dial_scale_init(lv_obj_t * scale, int32_t size)
+{
+    lv_obj_set_size(scale, size, size);
+    lv_scale_set_mode(scale, LV_SCALE_MODE_ROUND_INNER);
+    lv_obj_set_style_pad_all(scale, DIAL_PAD, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scale, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(scale, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(scale, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_radius(scale, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+    /* no main arc, only the ticks like the v8 lv_meter */
+    lv_obj_set_style_arc_width(scale, 0, LV_PART_MAIN);
+    lv_obj_set_scrollable(scale, false);
+    lv_scale_set_angle_range(scale, DIAL_ANGLE_RANGE);
+}
+
+static lv_obj_t * mem_dial_create(lv_obj_t * parent)
+{
+    lv_obj_t * scale = lv_scale_create(parent);
+    dial_scale_init(scale, SCALE_POS_X(300));
+    lv_scale_set_rotation(scale, 90);
+    lv_scale_set_range(scale, 0, 100);
+    lv_scale_set_total_tick_count(scale, 6);
+    lv_scale_set_major_tick_every(scale, 1);
+    lv_scale_set_label_show(scale, true);
+    lv_obj_set_style_length(scale, 10, LV_PART_INDICATOR);
+    lv_obj_set_style_line_width(scale, 2, LV_PART_INDICATOR);
+    lv_obj_set_style_line_color(scale, lv_color_hex3(0xeee), LV_PART_INDICATOR);
+    lv_obj_update_layout(scale);
+
+    arc_total_size = dial_arc_create(scale, 0, 5, lv_palette_main(LV_PALETTE_RED), 90, 0, DIAL_ANGLE_RANGE);
+    arc_mem_used = dial_arc_create(scale, -5, 5, lv_palette_main(LV_PALETTE_GREEN), 90, 0, DIAL_ANGLE_RANGE);
+    arc_frag = dial_arc_create(scale, -10, 5, lv_palette_main(LV_PALETTE_BLUE), 90, 0, DIAL_ANGLE_RANGE);
+    lv_arc_set_value(arc_mem_used, 20);
+    lv_arc_set_value(arc_frag, 80);
+
+    return scale;
+}
+
+static lv_obj_t * temp_dial_create(lv_obj_t * parent)
+{
+    static lv_style_t style_cold;
+    static lv_style_t style_hot;
+    static bool styles_inited;
+
+    if(!styles_inited) {
+        lv_style_init(&style_cold);
+        lv_style_set_line_color(&style_cold, lv_palette_main(LV_PALETTE_BLUE));
+        lv_style_init(&style_hot);
+        lv_style_set_line_color(&style_hot, lv_palette_main(LV_PALETTE_RED));
+        styles_inited = true;
+    }
+
+    lv_obj_t * scale = lv_scale_create(parent);
+    dial_scale_init(scale, SCALE_POS_X(300));
+    lv_scale_set_rotation(scale, TEMP_ROTATION);
+    lv_scale_set_range(scale, TEMP_MIN, TEMP_MAX);
+    lv_scale_set_total_tick_count(scale, 31);
+    lv_scale_set_major_tick_every(scale, 5);
+    lv_scale_set_label_show(scale, true);
+    /* minor ticks */
+    lv_obj_set_style_length(scale, 6, LV_PART_ITEMS);
+    lv_obj_set_style_line_width(scale, 1, LV_PART_ITEMS);
+    lv_obj_set_style_line_color(scale, lv_palette_main(LV_PALETTE_GREY), LV_PART_ITEMS);
+    /* major ticks; label gap is 5 instead of the default 15 */
+    lv_obj_set_style_length(scale, 15, LV_PART_INDICATOR);
+    lv_obj_set_style_line_width(scale, 2, LV_PART_INDICATOR);
+    lv_obj_set_style_line_color(scale, lv_color_black(), LV_PART_INDICATOR);
+    lv_obj_set_style_pad_radial(scale, -10, LV_PART_INDICATOR);
+
+    /* blue ticks at the cold end, red ticks at the hot end */
+    lv_scale_section_t * section = lv_scale_add_section(scale);
+    lv_scale_set_section_range(scale, section, TEMP_MIN, 10);
+    lv_scale_set_section_style_indicator(scale, section, &style_cold);
+    lv_scale_set_section_style_items(scale, section, &style_cold);
+    section = lv_scale_add_section(scale);
+    lv_scale_set_section_range(scale, section, 50, TEMP_MAX);
+    lv_scale_set_section_style_indicator(scale, section, &style_hot);
+    lv_scale_set_section_style_items(scale, section, &style_hot);
+    lv_obj_update_layout(scale);
+
+    dial_arc_create(scale, 0, 1, lv_palette_main(LV_PALETTE_BLUE), TEMP_ROTATION, temp_to_angle(TEMP_MIN), temp_to_angle(10));
+    dial_arc_create(scale, 0, 1, lv_palette_main(LV_PALETTE_RED), TEMP_ROTATION, temp_to_angle(50), temp_to_angle(TEMP_MAX));
+
+    temp_needle = lv_line_create(scale);
+    lv_obj_set_style_line_width(temp_needle, 2, LV_PART_MAIN);
+    lv_obj_set_style_line_color(temp_needle, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN);
+    lv_obj_set_style_line_rounded(temp_needle, true, LV_PART_MAIN);
+    /* The needle sits at the top left of the content area of the scale, but its points
+     * are computed from the outer size (center = width / 2), so shift it back by the padding */
+    lv_obj_set_style_translate_x(temp_needle, -DIAL_PAD, LV_PART_MAIN);
+    lv_obj_set_style_translate_y(temp_needle, -DIAL_PAD, LV_PART_MAIN);
+    temp_needle_len = lv_obj_get_content_width(scale) / 2 - 12;
+    temp_needle_set(scale, 0);
+
+    /* the hub of the needle */
+    lv_obj_t * hub = lv_obj_create(scale);
+    lv_obj_remove_style_all(hub);
+    lv_obj_set_size(hub, 5, 5);
+    lv_obj_set_style_radius(hub, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_opa(hub, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(hub, lv_palette_main(LV_PALETTE_GREY), 0);
+    lv_obj_center(hub);
+
+    return scale;
+}
+
+/* Y axis of a chart (v8: lv_chart_set_axis_tick(chart, Y, 10, 5, 6, 5, true, 30)):
+ * 6 major ticks with labels and 4 minor ticks between them, left of the chart. */
+static void chart_y_scale_create(lv_obj_t * parent, lv_obj_t * chart, int32_t min, int32_t max)
+{
+    lv_obj_update_layout(chart);
+    int32_t top = lv_obj_get_style_border_width(chart, LV_PART_MAIN) + lv_obj_get_style_pad_top(chart, LV_PART_MAIN);
+
+    lv_obj_t * scale = lv_scale_create(parent);
+    lv_scale_set_mode(scale, LV_SCALE_MODE_VERTICAL_LEFT);
+    lv_obj_set_size(scale, 30, lv_obj_get_content_height(chart));
+    lv_obj_align_to(scale, chart, LV_ALIGN_OUT_LEFT_TOP, 0, top);
+    lv_scale_set_range(scale, min, max);
+    lv_scale_set_total_tick_count(scale, 26);
+    lv_scale_set_major_tick_every(scale, 5);
+    lv_scale_set_label_show(scale, true);
+    lv_obj_set_style_length(scale, 10, LV_PART_INDICATOR);
+    lv_obj_set_style_length(scale, 5, LV_PART_ITEMS);
+    lv_obj_set_style_line_width(scale, 0, LV_PART_MAIN);
+}
 
 static void update_meter_box(lv_timer_t *timer)
 {
@@ -529,16 +717,18 @@ static void update_meter_box(lv_timer_t *timer)
     if(app_page_is_covered()) return;
 
     lv_mem_monitor(&g_mon);
-    lv_meter_set_indicator_end_value(mem_meter, indic_total_size, 100);
-    lv_meter_set_indicator_end_value(mem_meter, indic_mem_used, g_mon.used_pct);
-    lv_meter_set_indicator_end_value(mem_meter, indic_frag, g_mon.frag_pct);
+    lv_arc_set_value(arc_total_size, 100);
+    lv_arc_set_value(arc_mem_used, g_mon.used_pct);
+    lv_arc_set_value(arc_frag, g_mon.frag_pct);
 
     /* Only refresh the values. update_main_page_language() re-applies fonts,
      * re-aligns all button labels and rebuilds the dropdown; running that from
      * a timer invalidates the whole layout every tick. */
     update_status_labels();
 
-    lv_meter_set_indicator_value(temp_mem_meter, indic_temp, (int32_t)g_temperature);
+    int32_t t = (int32_t)g_temperature;
+    t = LV_CLAMP(TEMP_MIN, t, TEMP_MAX);
+    temp_needle_set(temp_mem_meter, t);
 }
 
 static void create_meter_box(lv_obj_t * parent, const char * title, const char * text1, const char * text2,
@@ -585,9 +775,9 @@ static void create_meter_box(lv_obj_t * parent, const char * title, const char *
     lv_label_set_text(label_frag, text3);
 
     {
-        static lv_coord_t grid_col_dsc[] = {LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
-//        static lv_coord_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
-        static lv_coord_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+        static int32_t grid_col_dsc[] = {LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+//        static int32_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+        static int32_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
         lv_obj_set_grid_dsc_array(cont, grid_col_dsc, grid_row_dsc);
 //        lv_obj_set_grid_cell(title_label, LV_GRID_ALIGN_START, 0, 2, LV_GRID_ALIGN_START, 0, 1);
 //        lv_obj_set_grid_cell(meter, LV_GRID_ALIGN_START, 0, 2, LV_GRID_ALIGN_START, 1, 1);
@@ -628,9 +818,9 @@ static void create_temp_box(lv_obj_t * parent, const char * text1)
     lv_label_set_text(label_temp, text1);
 
     {
-        static lv_coord_t grid_col_dsc[] = {LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
-//        static lv_coord_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
-        static lv_coord_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+        static int32_t grid_col_dsc[] = {LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+//        static int32_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+        static int32_t grid_row_dsc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
         lv_obj_set_grid_dsc_array(cont, grid_col_dsc, grid_row_dsc);
 //        lv_obj_set_grid_cell(title_label, LV_GRID_ALIGN_START, 0, 2, LV_GRID_ALIGN_START, 0, 1);
 //        lv_obj_set_grid_cell(meter, LV_GRID_ALIGN_START, 0, 2, LV_GRID_ALIGN_START, 1, 1);
@@ -650,18 +840,21 @@ static void create_temp_box(lv_obj_t * parent, const char * text1)
 void lv_demo_app(void)
 {
 //    static lv_obj_t *tv_main;       /* main page */
-    tv_main = lv_tabview_create(lv_scr_act(), LV_DIR_TOP, 0);
+    tv_main = lv_tabview_create(lv_screen_active());
+    /* no tab buttons, the pages are switched by swiping */
+    lv_tabview_set_tab_bar_size(tv_main, 0);
+    lv_obj_set_hidden(lv_tabview_get_tab_bar(tv_main), true);
     lv_obj_add_event_cb(tv_main, tv_main_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /*Create a LED and switch it OFF*/
-    led_main  = lv_led_create(lv_scr_act());
+    led_main  = lv_led_create(lv_screen_active());
     lv_obj_set_size(led_main, 10, 10);
     lv_obj_align(led_main, LV_ALIGN_CENTER, SCALE_POS_X(-30), SCALE_POS_Y(250));
     lv_led_on(led_main);
 //    lv_obj_add_event_cb(led_main, scroll_begin_event2, LV_EVENT_ALL, NULL);
 
     /*Copy the previous LED and set a brightness*/
-    led_performance  = lv_led_create(lv_scr_act());
+    led_performance  = lv_led_create(lv_screen_active());
     lv_obj_set_size(led_performance, 10, 10);
     lv_obj_align(led_performance, LV_ALIGN_CENTER, SCALE_POS_X(30), SCALE_POS_Y(250));
 //    lv_led_set_color(led2, lv_palette_main(LV_PALETTE_LIGHT_GREEN));
@@ -685,7 +878,7 @@ void lv_demo_app(void)
     lv_obj_set_width(obj_performance, LV_HOR_RES_MAX);
     lv_obj_set_height(obj_performance, LV_VER_RES_MAX);
 
-    lv_obj_clear_flag(obj_main, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(obj_main, false);
     lv_obj_set_scrollbar_mode(obj_performance, LV_SCROLLBAR_MODE_OFF);
     /* the performance page is taller than the panel, but it must never scroll
      * horizontally - that fights with the tabview and ends up showing an empty
@@ -697,54 +890,54 @@ void lv_demo_app(void)
     lv_obj_set_style_pad_right(obj_performance, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(obj_performance, 0, LV_PART_MAIN);
 
-    img = lv_img_create(obj_main);
-    lv_img_set_src(img, &img_background);
+    img = lv_image_create(obj_main);
+    lv_image_set_src(img, &img_background);
 
-    imgbtn_widget = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_widget, LV_IMGBTN_STATE_PRESSED, &img_widget, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_widget, LV_IMGBTN_STATE_RELEASED, &img_widget, NULL, NULL);
+    imgbtn_widget = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_widget, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_widget, NULL);
+    lv_imagebutton_set_src(imgbtn_widget, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_widget, NULL);
     APP_ICON_BTN_SIZE(imgbtn_widget);
     lv_obj_set_pos(imgbtn_widget, SCALE_POS_X(390), SCALE_POS_Y(207));
 
-    imgbtn_music = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_music, LV_IMGBTN_STATE_PRESSED, &img_music, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_music, LV_IMGBTN_STATE_RELEASED, &img_music, NULL, NULL);
+    imgbtn_music = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_music, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_music, NULL);
+    lv_imagebutton_set_src(imgbtn_music, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_music, NULL);
     APP_ICON_BTN_SIZE(imgbtn_music);
     lv_obj_set_pos(imgbtn_music, SCALE_POS_X(524), SCALE_POS_Y(207));
 
-    imgbtn_speed = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_speed, LV_IMGBTN_STATE_PRESSED, &img_speed, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_speed, LV_IMGBTN_STATE_RELEASED, &img_speed, NULL, NULL);
+    imgbtn_speed = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_speed, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_speed, NULL);
+    lv_imagebutton_set_src(imgbtn_speed, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_speed, NULL);
     APP_ICON_BTN_SIZE(imgbtn_speed);
     lv_obj_set_pos(imgbtn_speed, SCALE_POS_X(657), SCALE_POS_Y(207));
 
-    imgbtn_picture = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_picture, LV_IMGBTN_STATE_PRESSED, &img_picture, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_picture, LV_IMGBTN_STATE_RELEASED, &img_picture, NULL, NULL);
+    imgbtn_picture = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_picture, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_picture, NULL);
+    lv_imagebutton_set_src(imgbtn_picture, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_picture, NULL);
     APP_ICON_BTN_SIZE(imgbtn_picture);
     lv_obj_set_pos(imgbtn_picture, SCALE_POS_X(783), SCALE_POS_Y(207));
 
-    imgbtn_about = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_about, LV_IMGBTN_STATE_PRESSED, &img_about, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_about, LV_IMGBTN_STATE_RELEASED, &img_about, NULL, NULL);
+    imgbtn_about = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_about, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_about, NULL);
+    lv_imagebutton_set_src(imgbtn_about, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_about, NULL);
     APP_ICON_BTN_SIZE(imgbtn_about);
     lv_obj_set_pos(imgbtn_about, SCALE_POS_X(390), SCALE_POS_Y(350));
 
-    imgbtn_qrcode = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_qrcode, LV_IMGBTN_STATE_PRESSED, &img_qrcode, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_qrcode, LV_IMGBTN_STATE_RELEASED, &img_qrcode, NULL, NULL);
+    imgbtn_qrcode = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_qrcode, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_qrcode, NULL);
+    lv_imagebutton_set_src(imgbtn_qrcode, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_qrcode, NULL);
     APP_ICON_BTN_SIZE(imgbtn_qrcode);
     lv_obj_set_pos(imgbtn_qrcode, SCALE_POS_X(524), SCALE_POS_Y(350));
 
-    imgbtn_file = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_file, LV_IMGBTN_STATE_PRESSED, &img_file, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_file, LV_IMGBTN_STATE_RELEASED, &img_file, NULL, NULL);
+    imgbtn_file = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_file, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_file, NULL);
+    lv_imagebutton_set_src(imgbtn_file, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_file, NULL);
     APP_ICON_BTN_SIZE(imgbtn_file);
     lv_obj_set_pos(imgbtn_file, SCALE_POS_X(657), SCALE_POS_Y(350));
 
-    imgbtn_setting = lv_imgbtn_create(obj_main);
-    lv_imgbtn_set_src(imgbtn_setting, LV_IMGBTN_STATE_PRESSED, &img_setting, NULL, NULL);
-    lv_imgbtn_set_src(imgbtn_setting, LV_IMGBTN_STATE_RELEASED, &img_setting, NULL, NULL);
+    imgbtn_setting = lv_imagebutton_create(obj_main);
+    lv_imagebutton_set_src(imgbtn_setting, LV_IMAGEBUTTON_STATE_PRESSED, NULL, &img_setting, NULL);
+    lv_imagebutton_set_src(imgbtn_setting, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_setting, NULL);
     APP_ICON_BTN_SIZE(imgbtn_setting);
     lv_obj_set_pos(imgbtn_setting, SCALE_POS_X(783), SCALE_POS_Y(350));
 
@@ -796,10 +989,10 @@ void lv_demo_app(void)
     lv_obj_set_pos(cpu_chart, SCALE_POS_X(7 + 75), 19);
     lv_obj_set_size(cpu_chart, SCALE_POS_X(1004 - 75), 155);
     lv_chart_set_type(cpu_chart, LV_CHART_TYPE_LINE);
-    lv_chart_set_range(cpu_chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100);
+    lv_chart_set_axis_range(cpu_chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100);
     lv_chart_set_div_line_count(cpu_chart, 6, 12);
     cpu_chart_series = lv_chart_add_series(cpu_chart, lv_color_make(0x50, 0x0A, 0x88), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_axis_tick(cpu_chart, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 6, 5, true, 30);
+    chart_y_scale_create(obj_performance, cpu_chart, 0, 100);
     lv_chart_set_point_count(cpu_chart, CHART_POINT_CNT);
 
     //Write codes FPS chart
@@ -810,10 +1003,10 @@ void lv_demo_app(void)
     lv_chart_set_type(fps_chart, LV_CHART_TYPE_LINE);
     /* The series and the tick marks have to sit on the same axis, otherwise the
      * scale printed on the left has nothing to do with the drawn curve. */
-    lv_chart_set_range(fps_chart, LV_CHART_AXIS_PRIMARY_Y, 0, CHART_FPS_MAX);
+    lv_chart_set_axis_range(fps_chart, LV_CHART_AXIS_PRIMARY_Y, 0, CHART_FPS_MAX);
     lv_chart_set_div_line_count(fps_chart, 6, 12);
     fps_chart_series = lv_chart_add_series(fps_chart, lv_palette_main(LV_PALETTE_ORANGE), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_axis_tick(fps_chart, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 6, 5, true, 30);
+    chart_y_scale_create(obj_performance, fps_chart, 0, CHART_FPS_MAX);
     /* Same number of points as the CPU chart so both cover the same time span. */
     lv_chart_set_point_count(fps_chart, CHART_POINT_CNT);
 
@@ -823,7 +1016,7 @@ void lv_demo_app(void)
     lv_label_set_recolor(cpu_label, true);                      /*Enable re-coloring by commands in the text*/
     lv_label_set_text(cpu_label, "#F12F12 CPU usage(%)");
 
-    lv_label_set_long_mode(cpu_label, LV_LABEL_LONG_WRAP);
+    lv_label_set_long_mode(cpu_label, LV_LABEL_LONG_MODE_WRAP);
     lv_obj_set_pos(cpu_label, SCALE_POS_X(21), 2);
     //Write codes FPS label
     lv_obj_t *fps_label = lv_label_create(obj_performance);
@@ -831,107 +1024,22 @@ void lv_demo_app(void)
     lv_label_set_recolor(fps_label, true);                      /*Enable re-coloring by commands in the text*/
     lv_label_set_text(fps_label, "#F12F12 FPS");
 
-    lv_label_set_long_mode(fps_label, LV_LABEL_LONG_WRAP);
+    lv_label_set_long_mode(fps_label, LV_LABEL_LONG_MODE_WRAP);
     lv_obj_set_pos(fps_label, SCALE_POS_X(21), 182);
 
     chart_timer = lv_timer_create(update_chart, CHART_UPDATE_PERIOD, NULL);
+#if LV_USE_PERF_MONITOR
+    sysmon_observe();
+#endif
 
     /* 内存表盘 */
-    mem_meter = lv_meter_create(obj_performance);
+    mem_meter = mem_dial_create(obj_performance);
     lv_obj_set_pos(mem_meter, SCALE_POS_X(130), 357);
-    lv_obj_set_size(mem_meter, SCALE_POS_X(300), SCALE_POS_X(300));
-
-    /* Make tick lines closer to the dial rim: remove default padding/border so the meter content radius grows */
-    lv_obj_set_style_pad_all(mem_meter, 10, LV_PART_MAIN);
-    lv_obj_set_style_border_width(mem_meter, 0, LV_PART_MAIN);
-
-    /*Remove the circle from the middle*/
-    lv_obj_remove_style(mem_meter, NULL, LV_PART_INDICATOR);
-
-    /*Add a scale first*/
-    lv_meter_scale_t *mem_scale = lv_meter_add_scale(mem_meter);
-    lv_meter_set_scale_ticks(mem_meter, mem_scale, 6, 2, 10, lv_palette_main(LV_PALETTE_GREY));
-    lv_meter_set_scale_major_ticks(mem_meter, mem_scale, 1, 2, 10, lv_color_hex3(0xeee), 15);
-    lv_meter_set_scale_range(mem_meter, mem_scale, 0, 100, 270, 90);
-
-    /*Add a three arc indicator*/
-    indic_total_size = lv_meter_add_arc(mem_meter, mem_scale, 5, lv_palette_main(LV_PALETTE_RED), 0);
-    indic_mem_used = lv_meter_add_arc(mem_meter, mem_scale, 5, lv_palette_main(LV_PALETTE_GREEN), -5);
-    indic_frag = lv_meter_add_arc(mem_meter, mem_scale, 5, lv_palette_main(LV_PALETTE_BLUE), -10);
-
-    /*Create an animation to set the value*/
-    lv_anim_t a_mem;
-    lv_anim_init(&a_mem);
-//    lv_anim_set_exec_cb(&a_mem, mem_set_value);
-    lv_anim_set_values(&a_mem, 0, 100);
-    lv_anim_set_repeat_delay(&a_mem, 100);
-    lv_anim_set_playback_delay(&a_mem, 100);
-    lv_anim_set_repeat_count(&a_mem, LV_ANIM_REPEAT_INFINITE);
-
-    lv_anim_set_time(&a_mem, 2000);
-    lv_anim_set_playback_time(&a_mem, 500);
-    lv_anim_set_var(&a_mem, indic_total_size);
-    lv_anim_start(&a_mem);
-
-    lv_anim_set_time(&a_mem, 1000);
-    lv_anim_set_playback_time(&a_mem, 1000);
-    lv_anim_set_var(&a_mem, indic_mem_used);
-    lv_anim_start(&a_mem);
-
-    lv_anim_set_time(&a_mem, 1000);
-    lv_anim_set_playback_time(&a_mem, 2000);
-    lv_anim_set_var(&a_mem, indic_frag);
-    lv_anim_start(&a_mem);
-
-    lv_meter_set_indicator_end_value(mem_meter, indic_total_size, 100);
-    lv_meter_set_indicator_end_value(mem_meter, indic_mem_used, 20);
-    lv_meter_set_indicator_end_value(mem_meter, indic_frag, 80);
 
     /* 温度表盘 */
-    temp_mem_meter = lv_meter_create(obj_performance);
+    temp_mem_meter = temp_dial_create(obj_performance);
     lv_obj_set_pos(temp_mem_meter, SCALE_POS_X(588), 357);
-    lv_obj_set_size(temp_mem_meter, SCALE_POS_X(300), SCALE_POS_X(300));
-    lv_obj_set_style_width(temp_mem_meter, 5, LV_PART_INDICATOR);
-    lv_obj_set_style_height(temp_mem_meter, 5, LV_PART_INDICATOR);
-    lv_obj_set_style_radius(temp_mem_meter, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);  /* 保持圆形 */
 
-    /* Make tick lines closer to the dial rim: remove default padding/border so the meter content radius grows */
-    lv_obj_set_style_pad_all(temp_mem_meter, 10, LV_PART_MAIN);
-    lv_obj_set_style_border_width(temp_mem_meter, 0, LV_PART_MAIN);
-
-    /*Add a scale first*/
-    lv_meter_scale_t *temp_scale = lv_meter_add_scale(temp_mem_meter);
-    lv_meter_set_scale_ticks(temp_mem_meter, temp_scale, 31, 1, 6, lv_palette_main(LV_PALETTE_GREY));
-    lv_meter_set_scale_major_ticks(temp_mem_meter, temp_scale, 5, 2, 15, lv_color_black(), 5);
-    lv_meter_set_scale_range(temp_mem_meter, temp_scale, -40, 105, 270, 180 - 45);
-
-    /*Add a blue arc to the start*/
-    indic_temp = lv_meter_add_arc(temp_mem_meter, temp_scale, 1, lv_palette_main(LV_PALETTE_BLUE), 0);
-    lv_meter_set_indicator_start_value(temp_mem_meter, indic_temp, -40);
-    lv_meter_set_indicator_end_value(temp_mem_meter, indic_temp, 10);
-
-    /*Make the tick lines blue at the start of the scale*/
-    indic_temp = lv_meter_add_scale_lines(temp_mem_meter, temp_scale, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_GREY),
-                                     true, 0);
-    lv_meter_set_indicator_start_value(temp_mem_meter, indic_temp, -40);
-    lv_meter_set_indicator_end_value(temp_mem_meter, indic_temp, 10);
-
-    /*Add a red arc to the end*/
-    indic_temp = lv_meter_add_arc(temp_mem_meter, temp_scale, 1, lv_palette_main(LV_PALETTE_RED), 0);
-    lv_meter_set_indicator_start_value(temp_mem_meter, indic_temp, 50);
-    lv_meter_set_indicator_end_value(temp_mem_meter, indic_temp, 105);
-
-    /*Make the tick lines red at the end of the scale*/
-    indic_temp = lv_meter_add_scale_lines(temp_mem_meter, temp_scale, lv_palette_main(LV_PALETTE_GREY), lv_palette_main(LV_PALETTE_RED), true, 0);
-    lv_meter_set_indicator_start_value(temp_mem_meter, indic_temp, 50);
-    lv_meter_set_indicator_end_value(temp_mem_meter, indic_temp, 105);
-
-    /*Add a needle line indicator*/
-    indic_temp = lv_meter_add_needle_line(temp_mem_meter, temp_scale, 2, lv_palette_main(LV_PALETTE_GREY), -12);
-
-    ///////////////////////////////////////////
-    lv_meter_scale_t * scale;
-//    lv_meter_indicator_t * indic;
     create_meter_box(obj_performance, "Memory used", "Total size: 63%", "Memory used: 44%", "Amount of fragmentation: 58%");
     create_temp_box(obj_performance, "Temperature");
     meter_timer = lv_timer_create(update_meter_box, 500, NULL);
@@ -961,7 +1069,7 @@ void lv_demo_app(void)
     lv_label_set_recolor(font_label_year, true);                      /*Enable re-coloring by commands in the text*/
     lv_label_set_text(font_label_year, "#FFFFFF 2024/7/4");
     lv_obj_align(font_label_year, LV_ALIGN_LEFT_MID, SCALE_POS_X(50), SCALE_POS_Y(40));
-    lv_obj_add_flag(font_label_year, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_clickable(font_label_year, true);
     lv_obj_add_event_cb(font_label_year, year_label_evevt_cb, LV_EVENT_ALL, 0);
 
     /* lv_demo_app() is called again every time we return from benchmark/music.
@@ -980,21 +1088,21 @@ void lv_demo_app(void)
     lv_label_set_text_fmt(font_label, "#FFFFFF %02d:%02d:%02d", rtc_para.hour, rtc_para.minute, rtc_para.second);
     lv_label_set_text_fmt(font_label_year, "#FFFFFF %d/%02d/%02d", rtc_para.year, rtc_para.month, rtc_para.day);
 
-    img = lv_img_create( obj_performance );
-    lv_img_set_src(img, &img_temp);
+    img = lv_image_create( obj_performance );
+    lv_image_set_src(img, &img_temp);
     lv_obj_align_to(img, temp_mem_meter, LV_ALIGN_CENTER, SCALE_POS_X(0), SCALE_POS_Y(90));
     
-    img = lv_img_create( obj_performance );
-    lv_img_set_src(img, &img_mem);
+    img = lv_image_create( obj_performance );
+    lv_image_set_src(img, &img_mem);
     lv_obj_align_to(img, mem_meter, LV_ALIGN_CENTER, SCALE_POS_X(0), SCALE_POS_Y(0));
     // 1. 创建1个光标对象
     /* lv_indev_set_cursor() moves the cursor to the system layer, so it is not
-     * removed by lv_obj_clean(lv_scr_act()). Creating it on every rebuild of
+     * removed by lv_obj_clean(lv_screen_active()). Creating it on every rebuild of
      * the page would leak one object per return-to-home and leave stale red
      * dots on screen, so create it only once. */
     static lv_obj_t * cursor = NULL;
     if(cursor == NULL) {
-        cursor = lv_obj_create(lv_scr_act());
+        cursor = lv_obj_create(lv_screen_active());
         lv_obj_set_size(cursor, SCALE_POS_X(20), SCALE_POS_Y(20));
         lv_obj_set_style_bg_color(cursor, lv_color_hex(0xFF0000), 0); // 红色
         lv_obj_set_style_radius(cursor, LV_RADIUS_CIRCLE, 0); // 圆形
@@ -1023,7 +1131,7 @@ void lv_demo_app(void)
         uint8_t WriteBuffer[] = "1232This is FatFs working fine!\r\n";
         uint32_t read_num;
         uint32_t pos = 0;
-        res = lv_fs_open(&f, "0:/测试.TXT",LV_FS_MODE_RD | LV_FS_MODE_WR);
+        res = lv_fs_open(&f, "S:/测试.TXT",LV_FS_MODE_RD | LV_FS_MODE_WR);
 
         if(LV_FS_RES_OK == res){
             res = lv_fs_write(&f, WriteBuffer, sizeof(WriteBuffer), NULL);

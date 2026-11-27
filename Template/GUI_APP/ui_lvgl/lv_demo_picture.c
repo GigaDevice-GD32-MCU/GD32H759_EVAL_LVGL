@@ -1,6 +1,9 @@
 #include "lvgl.h"
 
-#if LV_USE_PNG && LV_USE_IMG && LV_BUILD_EXAMPLES
+/* lv_win is deprecated in LVGL v9.6 but still supported, silence the deprecation warnings of this file */
+LV_DEPRECATIONS_IGNORE_BEGIN
+
+#if LV_USE_LODEPNG && LV_USE_IMAGE && LV_USE_GIF && LV_BUILD_EXAMPLES
 
 static lv_obj_t * win1;
 static lv_obj_t * cont1;
@@ -12,10 +15,10 @@ static lv_obj_t * btn1;
 static lv_obj_t * btn_png,* btn_gif,* btn_bmp,* btn_sjpg;
 static lv_obj_t * pic_png, * pic_bmp,* pic_gif, * pic_sjpg;
 static bool styles_initialized;
-LV_IMG_DECLARE(img_sjpg);
-LV_IMG_DECLARE(wave);
-LV_IMG_DECLARE(img_bmp);
-LV_IMG_DECLARE(img_png);
+LV_IMAGE_DECLARE(img_sjpg);
+LV_IMAGE_DECLARE(wave);
+LV_IMAGE_DECLARE(img_bmp);
+LV_IMAGE_DECLARE(img_png);
 extern lv_obj_t *obj_performance;
 extern lv_obj_t *led_main;
 extern lv_obj_t *led_performance;
@@ -28,16 +31,16 @@ static void lv_demo_sjpg(void);
 static void hide_picture(lv_obj_t * picture)
 {
     if(picture != NULL) {
-        lv_obj_add_flag(picture, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_hidden(picture, true);
     }
 }
 
 static void close_event_handler(lv_event_t * e)
 {
-    lv_obj_clear_flag(obj_performance, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(led_main, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(led_performance, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_del(lv_event_get_user_data(e));
+    lv_obj_set_hidden(obj_performance, false);
+    lv_obj_set_hidden(led_main, false);
+    lv_obj_set_hidden(led_performance, false);
+    lv_obj_delete(lv_event_get_user_data(e));
 
     win1 = NULL;
     cont1 = NULL;
@@ -134,7 +137,8 @@ void lv_demo_picture(lv_obj_t * parent)
         styles_initialized = true;
     }
 
-    win1 = lv_win_create(parent, 40);
+    win1 = lv_win_create(parent);
+    lv_obj_set_height(lv_win_get_header(win1), 40);
     lv_obj_set_style_radius(win1, 8, LV_PART_MAIN);
 
     lv_obj_set_size(win1, 480, 272);
@@ -142,7 +146,7 @@ void lv_demo_picture(lv_obj_t * parent)
 
 
     lv_win_add_title(win1, "Picture test");
-    btn1 = lv_win_add_btn(win1, LV_SYMBOL_CLOSE, 40);
+    btn1 = lv_win_add_button(win1, LV_SYMBOL_CLOSE, 40);
     lv_obj_add_event_cb(btn1, close_event_handler, LV_EVENT_CLICKED, win1);
 
     cont1 = lv_win_get_content(win1);  /*Content can be added here*/
@@ -159,7 +163,7 @@ void lv_demo_picture(lv_obj_t * parent)
     lv_obj_align(ta_pic, LV_ALIGN_BOTTOM_MID, 30, -2);
     lv_obj_set_content_width(ta_pic, 325);
 
-    btn_png = lv_btn_create(cont1);
+    btn_png = lv_button_create(cont1);
     lv_obj_remove_style_all(btn_png);                          /*Remove the style coming from the theme*/
     lv_obj_add_style(btn_png, &style, 0);
     lv_obj_add_style(btn_png, &style_pr, LV_STATE_PRESSED);
@@ -172,7 +176,7 @@ void lv_demo_picture(lv_obj_t * parent)
 
     lv_obj_add_event_cb(btn_png, btn_png_event_cb, LV_EVENT_CLICKED, NULL);
 
-    btn_gif = lv_btn_create(cont1);
+    btn_gif = lv_button_create(cont1);
     lv_obj_remove_style_all(btn_gif);                          /*Remove the style coming from the theme*/
     lv_obj_add_style(btn_gif, &style, 0);
     lv_obj_add_style(btn_gif, &style_pr, LV_STATE_PRESSED);
@@ -185,7 +189,7 @@ void lv_demo_picture(lv_obj_t * parent)
 
     lv_obj_add_event_cb(btn_gif, btn_gif_event_cb, LV_EVENT_CLICKED, NULL);
 
-    btn_bmp = lv_btn_create(cont1);
+    btn_bmp = lv_button_create(cont1);
     lv_obj_remove_style_all(btn_bmp);                          /*Remove the style coming from the theme*/
     lv_obj_add_style(btn_bmp, &style, 0);
     lv_obj_add_style(btn_bmp, &style_pr, LV_STATE_PRESSED);
@@ -198,7 +202,7 @@ void lv_demo_picture(lv_obj_t * parent)
 
     lv_obj_add_event_cb(btn_bmp, btn_bmp_event_cb, LV_EVENT_CLICKED, NULL);
 
-    btn_sjpg = lv_btn_create(cont1);
+    btn_sjpg = lv_button_create(cont1);
     lv_obj_remove_style_all(btn_sjpg);                          /*Remove the style coming from the theme*/
     lv_obj_add_style(btn_sjpg, &style, 0);
     lv_obj_add_style(btn_sjpg, &style_pr, LV_STATE_PRESSED);
@@ -216,12 +220,12 @@ void lv_demo_picture(lv_obj_t * parent)
 static void lv_demo_png(void)
 {
     if(pic_png == NULL) {
-        pic_png = lv_img_create(cont1);
-        lv_img_set_src(pic_png, &img_png);
+        pic_png = lv_image_create(cont1);
+        lv_image_set_src(pic_png, &img_png);
         lv_obj_align(pic_png, LV_ALIGN_CENTER, 30, -30);
     }
     else {
-        lv_obj_clear_flag(pic_png, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_hidden(pic_png, false);
     }
 
     lv_textarea_set_placeholder_text(ta_pic, "Built-in PNG image");
@@ -230,12 +234,12 @@ static void lv_demo_png(void)
 static void lv_demo_bmp(void)
 {
     if(pic_bmp == NULL) {
-        pic_bmp = lv_img_create(cont1);
-        lv_img_set_src(pic_bmp, &img_bmp);
+        pic_bmp = lv_image_create(cont1);
+        lv_image_set_src(pic_bmp, &img_bmp);
         lv_obj_align(pic_bmp, LV_ALIGN_CENTER, 30, -30);
     }
     else {
-        lv_obj_clear_flag(pic_bmp, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_hidden(pic_bmp, false);
     }
 
     lv_textarea_set_placeholder_text(ta_pic, "Built-in BMP image");
@@ -251,7 +255,7 @@ static void lv_demo_gif(void)
         lv_obj_align(pic_gif, LV_ALIGN_CENTER, 30, -30);
     }
     else {
-        lv_obj_clear_flag(pic_gif, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_hidden(pic_gif, false);
         lv_gif_restart(pic_gif);
     }
 }
@@ -261,13 +265,15 @@ static void lv_demo_sjpg(void)
     lv_textarea_set_placeholder_text(ta_pic, "Built-in SJPG image");
 
     if(pic_sjpg == NULL) {
-        pic_sjpg = lv_img_create(cont1);
-        lv_img_set_src(pic_sjpg, &img_sjpg);
+        pic_sjpg = lv_image_create(cont1);
+        lv_image_set_src(pic_sjpg, &img_sjpg);
         lv_obj_align(pic_sjpg, LV_ALIGN_CENTER, 30, -30);
     }
     else {
-        lv_obj_clear_flag(pic_sjpg, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_hidden(pic_sjpg, false);
     }
 }
 
 #endif
+
+LV_DEPRECATIONS_IGNORE_END

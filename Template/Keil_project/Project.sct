@@ -13,14 +13,13 @@ LR_IROM1 0x08000000 0x003C0000  {    ; load region size_region
     *.o (STACK)
    .ANY (+RW +ZI)
   }
-  RW_IRAM2 0x00000000 0x00010000  {
-   .ANY (+RW +ZI)
-   *(ITCM_section)
-  }
+  ; ITCM (0x00000000, 64KB) is left unused: the IPA/DMA can't access it.
 
-  RW_SDRAM 0xC0000000 UNINIT 0x2000000  {  ; SDRAM 32MB
-    *(SDRAM)
-	*.o (HEAP)
+  ; SDRAM 32MB, usable only after exmc_synchronous_dynamic_ram_init().
+  ; UNINIT + ZI sections only (`__attribute__((section(".bss.SDRAM")))`), so the
+  ; startup code never touches it. HEAP stays in RW_IRAM1 (.ANY) for the same reason.
+  RW_SDRAM 0xC0000000 UNINIT 0x2000000  {
+    *(.bss.SDRAM)
   }
 }
 

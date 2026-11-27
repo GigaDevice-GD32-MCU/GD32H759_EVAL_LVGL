@@ -9,6 +9,52 @@ The project uses landscape orientation with the `RGB565` pixel format and 16-bit
 
 Project toolchains include `Keil MDK-ARM (ARM Compiler 6)`, `IAR`, and `GD32EmbeddedBuilder`.
 
+## Benchmark
+
+The following benchmark results were obtained using `LVGL 9.6.0` with IPA acceleration and double buffering.
+
+| Name                      | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
+|:------------------------- | --------:| --------:| ---------:| -----------:| ----------:|
+| Empty screen              | 9%       | 33       | 2         | 2           | <1         |
+| Moving wallpaper          | 23%      | 33       | 7         | 7           | <1         |
+| Single rectangle          | 2%       | 33       | <1        | <1          | <1         |
+| Multiple rectangles       | 10%      | 33       | 3         | 3           | <1         |
+| Multiple RGB images       | 8%       | 33       | 2         | 2           | <1         |
+| Multiple ARGB images      | 16%      | 33       | 4         | 4           | <1         |
+| Rotated ARGB images       | 20%      | 33       | 6         | 6           | <1         |
+| Multiple labels           | 13%      | 33       | 3         | 3           | <1         |
+| Screen sized text         | 44%      | 33       | 13        | 13          | <1         |
+| Multiple arcs             | 6%       | 33       | 1         | 1           | <1         |
+| Containers                | 10%      | 33       | 4         | 4           | <1         |
+| Containers with overlay   | 36%      | 33       | 10        | 10          | <1         |
+| Containers with opa       | 13%      | 33       | 4         | 4           | <1         |
+| Containers with opa_layer | 19%      | 33       | 8         | 8           | <1         |
+| Containers with scrolling | 45%      | 33       | 12        | 12          | <1         |
+| Widgets demo              | 57%      | 33       | 15        | 15          | <1         |
+| All scenes avg.           | 20%      | 33       | 5         | 5           | <1         |
+
+The following benchmark results were obtained using `LVGL 9.6.0` without IPA acceleration and with double buffering.
+
+| Name                      | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
+|:------------------------- | --------:| --------:| ---------:| -----------:| ----------:|
+| Empty screen              | 13%      | 33       | 2         | 2           | <1         |
+| Moving wallpaper          | 28%      | 33       | 8         | 8           | <1         |
+| Single rectangle          | 5%       | 33       | <1        | <1          | <1         |
+| Multiple rectangles       | 12%      | 33       | 2         | 2           | <1         |
+| Multiple RGB images       | 13%      | 33       | 3         | 3           | <1         |
+| Multiple ARGB images      | 18%      | 33       | 5         | 5           | <1         |
+| Rotated ARGB images       | 20%      | 33       | 5         | 5           | <1         |
+| Multiple labels           | 15%      | 33       | 4         | 4           | <1         |
+| Screen sized text         | 48%      | 33       | 14        | 14          | <1         |
+| Multiple arcs             | 9%       | 33       | 1         | 1           | <1         |
+| Containers                | 11%      | 33       | 4         | 4           | <1         |
+| Containers with overlay   | 35%      | 33       | 10        | 10          | <1         |
+| Containers with opa       | 14%      | 33       | 5         | 5           | <1         |
+| Containers with opa_layer | 19%      | 33       | 8         | 8           | <1         |
+| Containers with scrolling | 44%      | 33       | 12        | 12          | <1         |
+| Widgets demo              | 57%      | 32       | 15        | 15          | <1         |
+| All scenes avg.           | 22%      | 32       | 6         | 6           | <1         |
+
 ## Specification
 
 - **MCU:** GD32H759IM (Cortex-M7, 600MHz)
@@ -66,10 +112,10 @@ The available debug options depend on your IDE and project configuration.
 
 ## Third-Party Components
 
-| Category   | In Use | Component | Version   | License         |
-| ---------- | ------ | --------- | --------- | --------------- |
-| GUI        | Yes    | `LVGL`    | `V8.3.11` | `MIT`           |
-| Filesystem | Yes    | `FatFs`   | `R0.16`   | `FatFs license` |
+| Category   | In Use | Component | Version  | License         |
+| ---------- | ------ | --------- | -------- | --------------- |
+| GUI        | Yes    | `LVGL`    | `V9.6.0` | `MIT`           |
+| Filesystem | Yes    | `FatFs`   | `R0.16`  | `FatFs license` |
 
 When adding a third-party library, update this table and retain its license text and copyright notices.
 
@@ -77,4 +123,4 @@ When adding a third-party library, update this table and retain its license text
 
 If you find any issues with the development board feel free to open an Issue in this repository. For LVGL related issues (features, bugs, etc) please use the main [lvgl repository](https://github.com/lvgl/lvgl).
 
-If you have found a bug and a fix, please submit a pull request. If you are new to pull requests, refer to the [LVGL contribution guide](https://docs.lvgl.io/8.3/CONTRIBUTING.html#pull-request) to learn the basics.
+If you have found a bug and a fix, please submit a pull request. If you are new to pull requests, refer to the [LVGL contribution guide](https://docs.lvgl.io/master/CONTRIBUTING.html#pull-request) to learn the basics.

@@ -10,6 +10,7 @@
 
 
 #include "lvgl.h"
+#include "lv_font_tool_compat.h"
 
 
 static const uint8_t glyph_bitmap[] = {
@@ -422,10 +423,6 @@ static const lv_font_fmt_txt_cmap_t cmaps[] = {
     }
 };
 
-static lv_font_fmt_txt_glyph_cache_t glyph_cache = {
-    .last_letter = 0xf295,
-    .last_glyph_id = 13,
-};
 
 
 static lv_font_fmt_txt_dsc_t font_dsc = {
@@ -439,75 +436,19 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
     .kern_dsc = NULL,
     .kern_classes = 0,
 
-    .cache = &glyph_cache,
 };
 
 
-static int binsearch(const uint16_t *sortedSeq, int seqLength, uint16_t keyData) {
-    int low = 0, mid, high = seqLength - 1;
-    while (low <= high) {
-        mid = (low + high)>>1;//右移1位等于是/2，奇数，无论奇偶，有个值就行
-        if (keyData < sortedSeq[mid]) {
-            high = mid - 1;//是mid-1，因为mid已经比较过了
-        }
-        else if (keyData > sortedSeq[mid]) {
-            low = mid + 1;
-        }
-        else {
-            return mid;
-        }
-    }
-    return -1;
+static const void * __user_font_get_bitmap(lv_font_glyph_dsc_t * g_dsc, lv_draw_buf_t * draw_buf)
+{
+    return lv_font_tool_get_glyph_bitmap(g_dsc, draw_buf);
 }
 
 
-static const uint8_t * __user_font_get_bitmap(const lv_font_t * font, uint32_t unicode_letter) {
-    lv_font_fmt_txt_dsc_t * fdsc = (lv_font_fmt_txt_dsc_t *) font->dsc;
-
-    if( unicode_letter<fdsc->cmaps[0].range_start || unicode_letter>fdsc->cmaps[0].range_length ) return false;
-
-    int i;
-    if( unicode_letter==fdsc->cache->last_letter ){
-        i = fdsc->cache->last_glyph_id;
-    }
-    else{
-        i = binsearch(fdsc->cmaps[0].unicode_list, fdsc->cmaps[0].list_length, unicode_letter);
-    }
-    if( i != -1 ) {
-        const lv_font_fmt_txt_glyph_dsc_t * gdsc = &fdsc->glyph_dsc[i];
-        fdsc->cache->last_glyph_id = i;
-        fdsc->cache->last_letter = unicode_letter;
-        return &fdsc->glyph_bitmap[gdsc->bitmap_index];
-    }
-    return NULL;
-}
-
-
-static bool __user_font_get_glyph_dsc(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out, uint32_t unicode_letter, uint32_t unicode_letter_next) {
-    lv_font_fmt_txt_dsc_t * fdsc = (lv_font_fmt_txt_dsc_t *) font->dsc;
-
-    if( unicode_letter<fdsc->cmaps[0].range_start || unicode_letter>fdsc->cmaps[0].range_length ) return false;
-
-    int i;
-    if( unicode_letter==fdsc->cache->last_letter ){
-        i = fdsc->cache->last_glyph_id;
-    }
-    else{
-        i = binsearch(fdsc->cmaps[0].unicode_list, fdsc->cmaps[0].list_length, unicode_letter);
-    }
-    if( i != -1 ) {
-        const lv_font_fmt_txt_glyph_dsc_t * gdsc = &fdsc->glyph_dsc[i];
-        fdsc->cache->last_glyph_id = i;
-        fdsc->cache->last_letter = unicode_letter;
-        dsc_out->adv_w = gdsc->adv_w;
-        dsc_out->box_h = gdsc->box_h;
-        dsc_out->box_w = gdsc->box_w;
-        dsc_out->ofs_x = gdsc->ofs_x;
-        dsc_out->ofs_y = gdsc->ofs_y;
-        dsc_out->bpp   = fdsc->bpp;
-        return true;
-    }
-    return false;
+static bool __user_font_get_glyph_dsc(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out, uint32_t unicode_letter, uint32_t unicode_letter_next)
+{
+    LV_UNUSED(unicode_letter_next);
+    return lv_font_tool_get_glyph_dsc(font, dsc_out, unicode_letter, LV_FONT_TOOL_LOOKUP_SORTED);
 }
 
 
